@@ -1,0 +1,11 @@
+{
+  "name": "S1 Hero Prompt Engine",
+  "id": "s1-hero-prompt-engine",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://backend-mocha-six-61.vercel.app"]
+  }
+}
