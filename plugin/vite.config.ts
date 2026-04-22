@@ -7,9 +7,12 @@ export default defineConfig({
   plugins: [
     react(),
     {
-      name: 'copy-icon',
+      name: 'copy-icons',
       writeBundle() {
         copyFileSync(resolve('icon.svg'), resolve('dist/icon.svg'));
+        copyFileSync(resolve('icon16.png'), resolve('dist/icon16.png'));
+        copyFileSync(resolve('icon48.png'), resolve('dist/icon48.png'));
+        copyFileSync(resolve('icon128.png'), resolve('dist/icon128.png'));
       }
     }
   ],
