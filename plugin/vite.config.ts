@@ -1,8 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { copyFileSync } from 'fs';
+import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'copy-icon',
+      writeBundle() {
+        copyFileSync(resolve('icon.svg'), resolve('dist/icon.svg'));
+      }
+    }
+  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
