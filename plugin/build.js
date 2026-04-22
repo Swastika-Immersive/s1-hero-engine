@@ -15,19 +15,19 @@ if (!fs.existsSync(htmlPath)) {
 const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
 const jsContent = fs.readFileSync(jsPath, 'utf-8');
 
-// Replace external script reference with inline JS
-// Only escape </script> to prevent HTML parsing issues
-const escapedJs = jsContent.replace(/<\/script>/gi, '<\\/script>');
+// Encode JS as base64 and use data URI to avoid HTML parsing issues
+const jsBase64 = Buffer.from(jsContent, 'utf-8').toString('base64');
+const dataUri = `data:text/javascript;base64,${jsBase64}`;
 
 const inlineHtml = htmlContent.replace(
   '<script src="./ui.js"></script>',
-  `<script>${escapedJs}</script>`
+  `<script src="${dataUri}"></script>`
 );
 
 // Write the inlined HTML back
 fs.writeFileSync(htmlPath, inlineHtml);
 
-// Delete the external JS file since it's now inlined
+// Delete the external JS file since it's now inlined via data URI
 fs.unlinkSync(jsPath);
 
-console.log('✅ Inlined JS into ui.html');
+console.log('✅ Inlined JS into ui.html using data URI');
