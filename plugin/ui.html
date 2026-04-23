@@ -1174,21 +1174,21 @@
       }
     }
     
-    function goBack() {
+    window.goBack = function() {
       if (state.currentStep > 1) {
         goToStep(state.currentStep - 1);
       }
-    }
+    };
     
-    function goNext() {
+    window.goNext = function() {
       if (state.currentStep === 5) {
         generatePrompt();
       } else {
         goToStep(state.currentStep + 1);
       }
-    }
+    };
     
-    function goToStep(stepNumber) {
+    window.goToStep = function(stepNumber) {
       // Hide all steps
       document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
       
@@ -1223,7 +1223,7 @@
     }
     
     // Step 1: Mode Selection
-    function selectMode(mode) {
+    window.selectMode = function(mode) {
       state.mode = mode;
       document.querySelectorAll('#step1 .option[data-mode]').forEach(el => {
         el.classList.remove('selected');
@@ -1235,35 +1235,35 @@
         mode === 'variation' ? 'block' : 'none';
       
       updateFooter();
-    }
+    };
     
-    function selectVariation(level) {
+    window.selectVariation = function(level) {
       state.variationLevel = level;
       document.querySelectorAll('#step1 .option[data-level]').forEach(el => {
         el.classList.remove('selected');
         if (el.dataset.level === level) el.classList.add('selected');
       });
       updateFooter();
-    }
+    };
     
     // Step 2: Subjects & References
-    function toggleProductRef() {
+    window.toggleProductRef = function() {
       state.productRef = !state.productRef;
       document.getElementById('product-ref-toggle').classList.toggle('on');
       document.getElementById('product-upload-zone').style.display = state.productRef ? 'block' : 'none';
       updateFooter();
-    }
+    };
     
-    function toggleSceneRef() {
+    window.toggleSceneRef = function() {
       state.sceneRef = !state.sceneRef;
       document.getElementById('scene-ref-toggle').classList.toggle('on');
       document.getElementById('scene-upload-zone').style.display = state.sceneRef ? 'block' : 'none';
       updateFooter();
-    }
+    };
     
-    function getFigmaSelection(type) {
+    window.getFigmaSelection = function(type) {
       parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
-    }
+    };
     
     function handleFileUpload(type, files) {
       const maxImages = type === 'product' ? (state.mode === 'single' ? 1 : 6) : 1;
@@ -1300,7 +1300,7 @@
       });
     }
     
-    function removeImage(type, index) {
+    window.removeImage = function(type, index) {
       if (type === 'product') {
         state.productImages.splice(index, 1);
       } else {
@@ -1973,53 +1973,53 @@
       }
       
       updateFooter();
-    }
+    };
     
-    function toggleNoBranding() {
+    window.toggleNoBranding = function() {
       state.noBranding = !state.noBranding;
       document.getElementById('no-branding-toggle').classList.toggle('on');
-    }
+    };
     
-    function toggleMotionAccents() {
+    window.toggleMotionAccents = function() {
       state.motionAccents = !state.motionAccents;
       document.getElementById('motion-accents-toggle').classList.toggle('on');
-    }
+    };
     
-    function toggleConsistencyMode() {
+    window.toggleConsistencyMode = function() {
       state.consistencyMode = !state.consistencyMode;
       document.getElementById('consistency-toggle').classList.toggle('on');
-    }
+    };
     
-    function modifyConfig() {
+    window.modifyConfig = function() {
       // Jump back to Step 3, keeping cached config
       goToStep(3);
-    }
+    };
     
-    function closeTask() {
+    window.closeTask = function() {
       // Close the plugin or reset to initial state
       resetAll();
-    }
+    };
     
-    function showStep61() {
+    window.showStep61 = function() {
       document.getElementById('step6-menu').style.display = 'none';
       document.getElementById('step61-menu').style.display = 'block';
       document.getElementById('user-iteration-input').style.display = 'none';
       document.getElementById('ai-suggestion-output').style.display = 'none';
-    }
+    };
     
-    function showUserIteration() {
+    window.showUserIteration = function() {
       document.getElementById('step61-menu').style.display = 'none';
       document.getElementById('user-iteration-input').style.display = 'block';
-    }
+    };
     
-    function showAISuggestion() {
+    window.showAISuggestion = function() {
       document.getElementById('step61-menu').style.display = 'none';
       document.getElementById('ai-suggestion-output').style.display = 'block';
       document.getElementById('ai-suggestion-text').textContent = 'Loading suggestion...';
       
       // Call backend with phase="ai_suggestion"
       fetchAISuggestion();
-    }
+    };
     
     async function fetchAISuggestion(excludePrevious = false) {
       try {
@@ -2055,7 +2055,7 @@
       }
     }
     
-    async function submitUserIteration() {
+    window.submitUserIteration = async function() {
       const userRequest = document.getElementById('iteration-text').value;
       if (!userRequest.trim()) {
         alert('Please describe what you would like to change');
@@ -2100,7 +2100,7 @@
       }
     }
     
-    async function applyAISuggestion() {
+    window.applyAISuggestion = async function() {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -2154,7 +2154,7 @@
       `;
     }
     
-    async function generatePrompt() {
+    window.generatePrompt = async function() {
       const continueBtn = document.getElementById('global-continue');
       continueBtn.disabled = true;
       continueBtn.textContent = 'Generating…';
@@ -2232,7 +2232,7 @@
       });
     }
     
-    function resetAll() {
+    window.resetAll = function() {
       // Reset state
       state.currentStep = 1;
       state.mode = null;
