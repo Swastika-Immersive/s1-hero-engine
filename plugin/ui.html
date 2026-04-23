@@ -578,6 +578,9 @@
       if (state.step3ConfigCached) return;
       
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         const response = await fetch(BACKEND_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -589,8 +592,15 @@
             productRef: state.productRef ? 'yes' : 'no',
             sceneRef: state.sceneRef ? 'yes' : 'no',
             sceneImages: []
-          })
+          }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         
         const data = await response.json();
         state.step3Config = data;
@@ -599,8 +609,9 @@
         renderStep3Config();
       } catch (error) {
         console.error('Failed to fetch Step 3 config:', error);
-        // Use fallback config
+        // Use fallback config immediately
         state.step3Config = getFallbackConfig();
+        state.step3ConfigCached = true;
         renderStep3Config();
       }
     }
@@ -782,6 +793,9 @@
       button.textContent = 'Generating…';
       
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
         const lockedConfig = {
           ...state.config,
           mode: state.mode,
@@ -802,8 +816,15 @@
             lockedConfig,
             productImages: [],
             sceneImages: []
-          })
+          }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         
         const data = await response.json();
         
