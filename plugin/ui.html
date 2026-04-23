@@ -418,6 +418,66 @@
       word-break: break-word;
     }
     
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    
+    .tab {
+      padding: 8px 16px;
+      background: #252532;
+      border: 1px solid #2a2a35;
+      border-radius: 8px;
+      color: #a0a0b0;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    
+    .tab:hover {
+      background: #2a2a35;
+      color: #fff;
+    }
+    
+    .tab.active {
+      background: #a855f7;
+      border-color: #a855f7;
+      color: #fff;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .shared-section {
+      background: #1e1e2a;
+      border: 1px solid #a855f7;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .shared-section h4 {
+      color: #a855f7;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .shared-section p {
+      color: #a0a0b0;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    
     .error {
       background: #3a1a1a;
       border: 1px solid #5a2a2a;
@@ -532,7 +592,15 @@
         </div>
         
         <div id="step3-content" style="display: none;">
-          <div class="card">
+          <div id="shared-section" class="shared-section" style="display: none;">
+            <h4>Shared Style DNA</h4>
+            <p id="shared-mood"></p>
+            <p id="shared-style" style="color: #a855f7; font-weight: 600;"></p>
+          </div>
+          
+          <div id="tab-bar" class="tab-bar" style="display: none;"></div>
+          
+          <div id="single-subject-config" class="card">
             <h3>Base Configuration</h3>
             <p>AI-recommended settings based on your subject</p>
             
@@ -561,6 +629,8 @@
               <select id="lighting-select" class="config-select"></select>
             </div>
           </div>
+          
+          <div id="multi-subject-configs" style="display: none;"></div>
           
           <div id="contextual-section" class="card" style="display: none;">
             <h3>Contextual Inputs</h3>
@@ -674,7 +744,8 @@
       noBranding: false,
       motionAccents: false,
       consistencyMode: false,
-      config: {}
+      config: {},
+      subjectConfigs: {}
     };
     
     const BACKEND_URL = 'https://backend-mocha-six-61.vercel.app/api/chat';
@@ -1031,21 +1102,173 @@
     function renderStep3Config() {
       const config = state.step3Config;
       
-      // Render base inputs
-      const baseInputs = config.base_inputs;
+      // Check if response is in new per-subject format
+      if (config.shared && config.subjects) {
+        // New format with per-subject configs
+        const subjects = config.subjects;
+        const shared = config.shared;
+        
+        // Show shared section
+        document.getElementById('shared-section').style.display = 'block';
+        document.getElementById('shared-mood').textContent = shared.moodNote || '';
+        document.getElementById('shared-style').textContent = 'Style: ' + (shared.styleSuggestion || 'auto');
+        
+        // Show tabs if multiple subjects
+        if (subjects.length > 1) {
+          document.getElementById('tab-bar').style.display = 'flex';
+          document.getElementById('single-subject-config').style.display = 'none';
+          document.getElementById('multi-subject-configs').style.display = 'block';
+          
+          // Render tabs
+          const tabBar = document.getElementById('tab-bar');
+          tabBar.innerHTML = '';
+          
+          // Add "Shared" tab
+          const sharedTab = document.createElement('div');
+          sharedTab.className = 'tab active';
+          sharedTab.textContent = 'Shared';
+          sharedTab.onclick = () => switchTab('shared');
+          tabBar.appendChild(sharedTab);
+          
+          // Add subject tabs
+          subjects.forEach((subject, index) => {
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.textContent = subject.name;
+            tab.dataset.subjectIndex = index;
+            tab.onclick = () => switchTab(index);
+            tabBar.appendChild(tab);
+          });
+          
+          // Render multi-subject configs
+          renderMultiSubjectConfigs(subjects);
+        } else {
+          // Single subject - render directly
+          document.getElementById('tab-bar').style.display = 'none';
+          document.getElementById('single-subject-config').style.display = 'block';
+          document.getElementById('multi-subject-configs').style.display = 'none';
+          
+          const subject = subjects[0];
+          renderSingleSubjectConfig(subject);
+        }
+      } else {
+        // Legacy format - single config
+        document.getElementById('shared-section').style.display = 'none';
+        document.getElementById('tab-bar').style.display = 'none';
+        document.getElementById('single-subject-config').style.display = 'block';
+        document.getElementById('multi-subject-configs').style.display = 'none';
+        
+        const baseInputs = config.base_inputs;
+        populateSelect('background-select', baseInputs.background);
+        populateSelect('surface-select', baseInputs.surface);
+        populateSelect('arrangement-select', baseInputs.arrangement);
+        populateSelect('camera-select', baseInputs.camera);
+        populateSelect('lighting-select', baseInputs.lighting);
+        
+        state.config.background = baseInputs.background.default;
+        state.config.surface = baseInputs.surface.default;
+        state.config.arrangement = baseInputs.arrangement.default;
+        state.config.camera = baseInputs.camera.default;
+        state.config.lighting = baseInputs.lighting.default;
+      }
+      
+      // Hide loader, show content
+      document.getElementById('step3-loader').style.display = 'none';
+      document.getElementById('step3-content').style.display = 'block';
+    }
+    
+    function renderSingleSubjectConfig(subject) {
+      const baseInputs = subject.base_inputs;
       populateSelect('background-select', baseInputs.background);
       populateSelect('surface-select', baseInputs.surface);
       populateSelect('arrangement-select', baseInputs.arrangement);
       populateSelect('camera-select', baseInputs.camera);
       populateSelect('lighting-select', baseInputs.lighting);
       
-      // Render contextual inputs
-      if (config.contextual_inputs && config.contextual_inputs.length > 0) {
-        document.getElementById('contextual-section').style.display = 'block';
-        const container = document.getElementById('contextual-inputs');
+      state.config.background = baseInputs.background.default;
+      state.config.surface = baseInputs.surface.default;
+      state.config.arrangement = baseInputs.arrangement.default;
+      state.config.camera = baseInputs.camera.default;
+      state.config.lighting = baseInputs.lighting.default;
+      
+      renderContextualInputs(subject.contextual_inputs);
+    }
+    
+    function renderMultiSubjectConfigs(subjects) {
+      const container = document.getElementById('multi-subject-configs');
+      container.innerHTML = '';
+      
+      subjects.forEach((subject, index) => {
+        const card = document.createElement('div');
+        card.className = 'card tab-content';
+        card.id = `subject-${index}`;
+        
+        card.innerHTML = `
+          <h3>${subject.name}</h3>
+          <p>Category: ${subject.category} | Material: ${subject.material}</p>
+          
+          <div class="config-section">
+            <h4>Background</h4>
+            <select id="background-${index}" class="config-select"></select>
+          </div>
+          
+          <div class="config-section">
+            <h4>Surface</h4>
+            <select id="surface-${index}" class="config-select"></select>
+          </div>
+          
+          <div class="config-section">
+            <h4>Arrangement</h4>
+            <select id="arrangement-${index}" class="config-select"></select>
+          </div>
+          
+          <div class="config-section">
+            <h4>Camera</h4>
+            <select id="camera-${index}" class="config-select"></select>
+          </div>
+          
+          <div class="config-section">
+            <h4>Lighting</h4>
+            <select id="lighting-${index}" class="config-select"></select>
+          </div>
+          
+          <div id="contextual-${index}"></div>
+        `;
+        
+        container.appendChild(card);
+        
+        const baseInputs = subject.base_inputs;
+        populateSelect(`background-${index}`, baseInputs.background);
+        populateSelect(`surface-${index}`, baseInputs.surface);
+        populateSelect(`arrangement-${index}`, baseInputs.arrangement);
+        populateSelect(`camera-${index}`, baseInputs.camera);
+        populateSelect(`lighting-${index}`, baseInputs.lighting);
+        
+        // Store per-subject config
+        state.subjectConfigs = state.subjectConfigs || {};
+        state.subjectConfigs[subject.name] = {
+          background: baseInputs.background.default,
+          surface: baseInputs.surface.default,
+          arrangement: baseInputs.arrangement.default,
+          camera: baseInputs.camera.default,
+          lighting: baseInputs.lighting.default
+        };
+        
+        renderContextualInputs(subject.contextual_inputs, `contextual-${index}`);
+      });
+    }
+    
+    function renderContextualInputs(contextualInputs, containerId = 'contextual-inputs') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
+      if (contextualInputs && contextualInputs.length > 0) {
+        if (containerId === 'contextual-inputs') {
+          document.getElementById('contextual-section').style.display = 'block';
+        }
         container.innerHTML = '';
         
-        config.contextual_inputs.forEach(input => {
+        contextualInputs.forEach(input => {
           const section = document.createElement('div');
           section.className = 'config-section';
           section.innerHTML = `
@@ -1062,19 +1285,31 @@
           state.config[input.key] = input.default;
         });
       } else {
-        document.getElementById('contextual-section').style.display = 'none';
+        if (containerId === 'contextual-inputs') {
+          document.getElementById('contextual-section').style.display = 'none';
+        }
+      }
+    }
+    
+    function switchTab(index) {
+      // Update tab styles
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      
+      if (index === 'shared') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[index + 1].classList.add('active');
       }
       
-      // Store base config
-      state.config.background = baseInputs.background.default;
-      state.config.surface = baseInputs.surface.default;
-      state.config.arrangement = baseInputs.arrangement.default;
-      state.config.camera = baseInputs.camera.default;
-      state.config.lighting = baseInputs.lighting.default;
+      // Show/hide content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       
-      // Hide loader, show content
-      document.getElementById('step3-loader').style.display = 'none';
-      document.getElementById('step3-content').style.display = 'block';
+      if (index === 'shared') {
+        // Show shared section only
+      } else {
+        const content = document.getElementById(`subject-${index}`);
+        if (content) content.classList.add('active');
+      }
     }
     
     function populateSelect(id, config) {

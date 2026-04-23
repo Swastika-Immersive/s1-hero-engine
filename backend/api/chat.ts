@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-export const config = { maxDuration: 60 };
+export const config = { maxDuration: 120 };
 
 // Load system prompt at module load
 const __filename = fileURLToPath(import.meta.url);
@@ -42,13 +42,46 @@ export default async function handler(req: any, res: any) {
       const { mode, variationLevel, subjects, productRef, sceneRef, sceneImages } = req.body;
       userMessage = [
         `Phase: step3_config`,
+        ``,
+        `Return per-subject Step 3 input configurations as STRICT JSON (no markdown, no prose, no code fences).`,
+        ``,
         `Mode: ${mode}${variationLevel ? ' (' + variationLevel + ')' : ''}`,
         `Subjects: ${subjects}`,
         `Product Ref: ${productRef}`,
         `Scene Ref: ${sceneRef}`,
         ``,
-        `Return STRICT JSON only (no markdown, no prose) matching:`,
-        `{ "category": "...", "base_inputs": { "background": { "default":"","alternatives":[],"derived":false }, "surface": {...}, "arrangement": {...}, "camera": {...}, "lighting": {...} }, "contextual_inputs": [ { "key":"","label":"","default":"","alternatives":[] } ] }`,
+        `For EACH subject, apply:`,
+        `- Category detection (cookware/electronics/lifestyle/tools/decor) per Smart Contextual Input System`,
+        `- Material-aware lighting (metal/ceramic/glass/plastic etc) per Material-Aware Lighting rules`,
+        `- Camera intelligence by scale and silhouette per Camera Intelligence rules`,
+        `- If sceneRef=yes with images attached, derive background/lighting/surface/camera from the image and mark derived=true`,
+        ``,
+        `Return schema:`,
+        `{`,
+        `  "shared": {`,
+        `    "styleSuggestion": "ikea|luxury|genz|apple",`,
+        `    "moodNote": "one-line editorial direction for the set"`,
+        `  },`,
+        `  "subjects": [`,
+        `    {`,
+        `      "name": "<subject>",`,
+        `      "category": "...",`,
+        `      "material": "...",`,
+        `      "base_inputs": {`,
+        `        "background":  { "default": "...", "alternatives": ["", "", ""], "derived": bool },`,
+        `        "surface":     { "default": "...", "alternatives": [...], "derived": bool },`,
+        `        "arrangement": { "default": "...", "alternatives": [...], "derived": false },`,
+        `        "camera":      { "default": "...", "alternatives": [...], "derived": bool },`,
+        `        "lighting":    { "default": "...", "alternatives": [...], "derived": bool }`,
+        `      },`,
+        `      "contextual_inputs": [ { "key":"", "label":"", "default":"", "alternatives":[] } ]`,
+        `    }`,
+        `  ]`,
+        `}`,
+        ``,
+        `For Consistent mode: the "shared" block drives the BASE STYLE DNA; per-subject inputs still differ in camera/angle where material demands it.`,
+        `For Variation mode: return variationLevel-appropriate alternatives per Variation Architecture.`,
+        `For Composition mode: shared scene + per-subject positioning notes.`,
       ].join('\n');
       imageBlocks = (sceneImages || []).map((img: string) => ({
         type: 'image',
@@ -59,9 +92,57 @@ export default async function handler(req: any, res: any) {
       if (!lockedConfig) return res.status(400).json({ error: 'Missing lockedConfig' });
       userMessage = [
         `Phase: final_prompt`,
-        `The user has confirmed this locked config at STEP 4. Generate the final prompt per SKILL.md STEP 5.`,
-        `Close with the Quality Seal verbatim.`,
         ``,
+        `RENDER per SKILL.md STEP 5.`,
+        ``,
+        `If mode=single:`,
+        `Output exactly:`,
+        `🎨 FINAL PROMPT`,
+        ``,
+        `[one clean ultra-realistic prompt paragraph, professional product-photography language, no bullet points, no labels]`,
+        ``,
+        `[Quality Seal verbatim]`,
+        ``,
+        `If mode in (consistent, variation, composition):`,
+        `Output exactly:`,
+        `🎨 FIXED SYSTEM (LOCKED FOR ALL)`,
+        ``,
+        `[one paragraph describing background, lighting, camera, mood, branding, quality rules — shared across all images]`,
+        ``,
+        `INDIVIDUAL INPUT SETS`,
+        ``,
+        `Set 1 — <subject>: <config summary>`,
+        `Set 2 — <subject>: <config summary>`,
+        `...`,
+        ``,
+        `PROMPTS`,
+        ``,
+        `Prompt 1 — <subject>`,
+        ``,
+        `[full prompt ending with Quality Seal]`,
+        ``,
+        `*`,
+        ``,
+        `Prompt 2 — <subject>`,
+        ``,
+        `[full prompt ending with Quality Seal]`,
+        ``,
+        `*`,
+        ``,
+        `...`,
+        ``,
+        `Quality Seal (append to every prompt, verbatim, no paraphrasing):`,
+        `"Ensure strong subject-background separation, realistic shadows with natural grounding, clean composition with generous breathing space, ultra-realistic materials with accurate reflections, zero noise or clutter. Premium e-commerce, Apple and IKEA catalog quality, professional studio product photography."`,
+        ``,
+        `Inject image-to-image lock clause if productRef=yes:`,
+        `"Faithfully replicate the exact product from the reference image with precise geometry, proportions, materials, and surface finish. Product identity must remain unchanged."`,
+        ``,
+        `Inject scene reference clause if sceneRef=yes:`,
+        `"Maintain the background, lighting style, and composition inspired by the provided reference image."`,
+        ``,
+        `Inject branding clause based on state.branding (ON=preserve, OFF=remove) per SKILL.md Brand Preservation Toggle.`,
+        ``,
+        `Locked Config:`,
         ...Object.entries(lockedConfig).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
       ].join('\n');
       imageBlocks = [
@@ -76,9 +157,12 @@ export default async function handler(req: any, res: any) {
       ? [...imageBlocks, { type: 'text', text: userMessage }]
       : userMessage;
 
+    const model = phase === 'final_prompt' ? 'claude-opus-4-6' : 'claude-sonnet-4-6';
+    const maxTokens = phase === 'final_prompt' ? 4096 : 2048;
+
     const completion = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      model,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: 'user', content }],
     });
