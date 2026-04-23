@@ -68,6 +68,47 @@ function cleanAIResponse(reply: string): any {
   }
 }
 
+const QUALITY_SEAL = "Ensure strong subject-background separation, realistic shadows with natural grounding, clean composition with generous breathing space, ultra-realistic materials with accurate reflections, zero noise or clutter. Premium e-commerce, Apple and IKEA catalog quality, professional studio product photography.";
+
+function validateAndNormalizeConfig(config: any): any {
+  const normalized = { ...config };
+  
+  // Ensure required fields exist
+  if (!normalized.mode) normalized.mode = 'single';
+  if (!normalized.subjects) normalized.subjects = 'product';
+  if (!normalized.preset) normalized.preset = 'ikea-minimal';
+  
+  // Ensure config object exists
+  if (!normalized.config || typeof normalized.config !== 'object') {
+    normalized.config = {
+      background: 'clean studio backdrop',
+      surface: 'neutral matte surface',
+      arrangement: 'centered hero placement',
+      camera: 'eye-level angle',
+      lighting: 'soft diffused lighting',
+      style: 'ecommerce clean',
+      branding: 'off'
+    };
+  }
+  
+  // Ensure all config fields exist
+  const requiredConfigFields = ['background', 'surface', 'arrangement', 'camera', 'lighting', 'style', 'branding'];
+  requiredConfigFields.forEach(field => {
+    if (!normalized.config[field]) {
+      normalized.config[field] = 'default';
+    }
+  });
+  
+  return normalized;
+}
+
+function ensureQualitySeal(prompt: string): string {
+  if (!prompt.includes(QUALITY_SEAL)) {
+    return prompt.trim() + '\n\n' + QUALITY_SEAL;
+  }
+  return prompt;
+}
+
 export default async function handler(req: any, res: any) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -122,62 +163,61 @@ export default async function handler(req: any, res: any) {
     } else if (phase === 'final_prompt') {
       const { lockedConfig, productImages, sceneImages } = req.body;
       if (!lockedConfig) return res.status(400).json({ error: 'Missing lockedConfig' });
+      
+      // Validate and normalize config before processing
+      const normalizedConfig = validateAndNormalizeConfig(lockedConfig);
+      console.log('Normalized config for final_prompt:', JSON.stringify(normalizedConfig, null, 2));
+      
       userMessage = [
         `Phase: final_prompt`,
         ``,
-        `IMPORTANT: Return ONLY the final prompt as plain prose. Do not wrap in JSON. Do not include menus, options, or routing data. The last sentence of your response must be the Quality Seal verbatim: "Ensure strong subject-background separation, realistic shadows with natural grounding, clean composition with generous breathing space, ultra-realistic materials with accurate reflections, zero noise or clutter. Premium e-commerce, Apple and IKEA catalog quality, professional studio product photography."`,
+        `CRITICAL: Follow STRICT format rules. No deviations allowed.`,
         ``,
-        `RENDER per SKILL.md STEP 5.`,
+        `MODE: ${normalizedConfig.mode}`,
         ``,
         `If mode=single:`,
-        `Output exactly:`,
+        `Output EXACTLY this format (no extra text, no labels, no JSON):`,
+        ``,
         `🎨 FINAL PROMPT`,
         ``,
-        `[one clean ultra-realistic prompt paragraph, professional product-photography language, no bullet points, no labels]`,
+        `[one clean ultra-realistic prompt paragraph using professional product-photography language. Include: subject description, background (${normalizedConfig.config.background}), surface (${normalizedConfig.config.surface}), arrangement (${normalizedConfig.config.arrangement}), camera (${normalizedConfig.config.camera}), lighting (${normalizedConfig.config.lighting}), style (${normalizedConfig.config.style}). No bullet points. No labels.]`,
         ``,
-        `[Quality Seal verbatim]`,
+        `${QUALITY_SEAL}`,
         ``,
         `If mode in (consistent, variation, composition):`,
-        `Output exactly:`,
+        `Output EXACTLY this format:`,
+        ``,
         `🎨 FIXED SYSTEM (LOCKED FOR ALL)`,
         ``,
-        `[one paragraph describing background, lighting, camera, mood, branding, quality rules — shared across all images]`,
+        `[one paragraph describing shared system: background (${normalizedConfig.config.background}), lighting (${normalizedConfig.config.lighting}), camera (${normalizedConfig.config.camera}), mood (${normalizedConfig.config.style}), branding (${normalizedConfig.config.branding === 'off' ? 'remove all logos and branding' : 'preserve original branding'}), quality rules - ultra-realistic materials, professional studio photography]`,
         ``,
         `INDIVIDUAL INPUT SETS`,
         ``,
-        `Set 1 — <subject>: <config summary>`,
-        `Set 2 — <subject>: <config summary>`,
-        `...`,
+        `Set 1 — ${normalizedConfig.subjects}: background=${normalizedConfig.config.background}, surface=${normalizedConfig.config.surface}, arrangement=${normalizedConfig.config.arrangement}, camera=${normalizedConfig.config.camera}, lighting=${normalizedConfig.config.lighting}`,
         ``,
         `PROMPTS`,
         ``,
-        `Prompt 1 — <subject>`,
+        `Prompt 1 — ${normalizedConfig.subjects}`,
         ``,
-        `[full prompt ending with Quality Seal]`,
+        `[full prompt with subject, background, surface, arrangement, camera, lighting, style details. Professional product photography language.]`,
         ``,
-        `*`,
-        ``,
-        `Prompt 2 — <subject>`,
-        ``,
-        `[full prompt ending with Quality Seal]`,
+        `${QUALITY_SEAL}`,
         ``,
         `*`,
         ``,
-        `...`,
-        ``,
-        `Quality Seal (append to every prompt, verbatim, no paraphrasing):`,
-        `"Ensure strong subject-background separation, realistic shadows with natural grounding, clean composition with generous breathing space, ultra-realistic materials with accurate reflections, zero noise or clutter. Premium e-commerce, Apple and IKEA catalog quality, professional studio product photography."`,
-        ``,
-        `Inject image-to-image lock clause if productRef=yes:`,
-        `"Faithfully replicate the exact product from the reference image with precise geometry, proportions, materials, and surface finish. Product identity must remain unchanged."`,
-        ``,
-        `Inject scene reference clause if sceneRef=yes:`,
-        `"Maintain the background, lighting style, and composition inspired by the provided reference image."`,
-        ``,
-        `Inject branding clause based on state.branding (ON=preserve, OFF=remove) per SKILL.md Brand Preservation Toggle.`,
+        `CRITICAL RULES:`,
+        `- Every prompt MUST end with the Quality Seal verbatim (no paraphrasing)`,
+        `- No missing fields from config`,
+        `- No undefined values`,
+        `- Proper subject insertion`,
+        `- Background, lighting, camera, composition always included`,
+        `- If productRef=yes: Add "Faithfully replicate the exact product from the reference image with precise geometry, proportions, materials, and surface finish. Product identity must remain unchanged."`,
+        `- If sceneRef=yes: Add "Maintain the background, lighting style, and composition inspired by the provided reference image."`,
+        `- If branding=off: Add "Remove all logos, text, and branding - keep surface clean and minimal."`,
+        `- If branding=on: Add "Preserve all original branding, logos, and product markings exactly as per reference."`,
         ``,
         `Locked Config:`,
-        ...Object.entries(lockedConfig).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
+        ...Object.entries(normalizedConfig).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
       ].join('\n');
       imageBlocks = [
         ...(productImages || []).map((img: string) => ({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: stripBase64Prefix(img) } })),
@@ -257,7 +297,15 @@ export default async function handler(req: any, res: any) {
     const rawReply = completion.content[0].type === 'text' ? completion.content[0].text : '';
     
     // Clean and normalize the AI response
-    const cleanedReply = cleanAIResponse(rawReply);
+    let cleanedReply = cleanAIResponse(rawReply);
+    
+    // For final_prompt phase, ensure Quality Seal is always appended
+    if (phase === 'final_prompt' || phase === 'iterate_user' || phase === 'iterate_ai') {
+      if (typeof cleanedReply === 'string') {
+        cleanedReply = ensureQualitySeal(cleanedReply);
+        console.log('Quality Seal ensured in final prompt');
+      }
+    }
     
     console.log('=== BACKEND RESPONSE CLEANING ===');
     console.log('Raw reply length:', rawReply.length);

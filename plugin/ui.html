@@ -44,6 +44,11 @@
       background-clip: text;
     }
     
+    .step-indicator {
+      font-size: 12px;
+      color: #a0a0b0;
+    }
+    
     .content {
       flex: 1;
       overflow-y: auto;
@@ -137,19 +142,15 @@
       background: #252532;
       border-radius: 8px;
       margin-bottom: 8px;
-    }
-    
-    .toggle-label {
-      font-size: 13px;
+      cursor: pointer;
     }
     
     .toggle-switch {
-      width: 44px;
-      height: 24px;
+      width: 40px;
+      height: 20px;
       background: #2a2a35;
-      border-radius: 12px;
+      border-radius: 10px;
       position: relative;
-      cursor: pointer;
       transition: background 0.2s;
     }
     
@@ -160,8 +161,8 @@
     .toggle-switch::after {
       content: '';
       position: absolute;
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       background: #fff;
       border-radius: 50%;
       top: 2px;
@@ -173,185 +174,42 @@
       transform: translateX(20px);
     }
     
+    .nav-buttons {
+      padding: 16px;
+      border-top: 1px solid #2a2a35;
+      display: flex;
+      gap: 8px;
+    }
+    
     .button {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-      border: none;
-      border-radius: 12px;
+      flex: 1;
+      padding: 12px;
+      background: #a855f7;
       color: #fff;
+      border: none;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: background 0.2s;
     }
     
     .button:hover {
-      opacity: 0.9;
+      background: #9333ea;
     }
     
     .button:disabled {
-      opacity: 0.5;
+      background: #2a2a35;
+      color: #a0a0b0;
       cursor: not-allowed;
     }
     
     .button-secondary {
-      background: #252532;
-      border: 1px solid #2a2a35;
-    }
-    
-    .nav-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #0d0d12;
-      padding: 16px;
-      border-top: 1px solid #2a2a35;
-      z-index: 100;
-    }
-    
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      padding-bottom: 80px;
-    }
-    
-    .step-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-bottom: 1px solid #2a2a35;
-    }
-    
-    .step-progress-bar {
-      display: flex;
-      gap: 4px;
-      flex: 1;
-    }
-    
-    .step-segment {
-      flex: 1;
-      height: 4px;
       background: #2a2a35;
-      border-radius: 2px;
-      transition: background 0.3s ease;
     }
     
-    .step-segment.completed {
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-    }
-    
-    .step-segment.active {
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-      box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
-    }
-    
-    .step-label {
-      font-size: 12px;
-      color: #a0a0b0;
-      white-space: nowrap;
-    }
-    
-    .step {
-      display: none;
-      animation: fadeIn 150ms ease-in;
-    }
-    
-    .step.active {
-      display: block;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .upload-zone {
-      border: 2px dashed #2a2a35;
-      border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-      margin-top: 12px;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-    
-    .upload-zone:hover {
-      border-color: #a855f7;
-      background: #1a1a24;
-    }
-    
-    .upload-zone.drag-over {
-      border-color: #a855f7;
-      background: #1a1a24;
-    }
-    
-    .upload-zone p {
-      font-size: 13px;
-      color: #a0a0b0;
-      margin-bottom: 12px;
-    }
-    
-    .upload-zone button {
-      background: #252532;
-      border: 1px solid #2a2a35;
-      border-radius: 8px;
-      padding: 8px 16px;
-      color: #fff;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .upload-zone button:hover {
-      border-color: #a855f7;
-    }
-    
-    .image-thumbnails {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    
-    .thumbnail {
-      position: relative;
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    
-    .thumbnail img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    .thumbnail-remove {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 20px;
-      height: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 12px;
-      color: #fff;
-    }
-    
-    .thumbnail-remove:hover {
-      background: rgba(255, 0, 0, 0.7);
+    .button-secondary:hover {
+      background: #3a3a45;
     }
     
     .loader {
@@ -359,7 +217,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px;
+      padding: 40px;
     }
     
     .spinner {
@@ -381,18 +239,7 @@
       color: #a0a0b0;
     }
     
-    .config-section {
-      margin-bottom: 16px;
-    }
-    
-    .config-section h4 {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #a855f7;
-    }
-    
-    .config-select {
+    select {
       width: 100%;
       background: #252532;
       border: 1px solid #2a2a35;
@@ -403,89 +250,14 @@
       outline: none;
     }
     
-    .result-screen {
-      background: #1a1a24;
-      border-radius: 12px;
-      padding: 16px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    
-    .result-text {
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    
-    .tab-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-    }
-    
-    .tab {
-      padding: 8px 16px;
-      background: #252532;
-      border: 1px solid #2a2a35;
-      border-radius: 8px;
-      color: #a0a0b0;
-      font-size: 13px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    
-    .tab:hover {
-      background: #2a2a35;
-      color: #fff;
-    }
-    
-    .tab.active {
-      background: #a855f7;
-      border-color: #a855f7;
-      color: #fff;
-    }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
-    .shared-section {
-      background: #1e1e2a;
-      border: 1px solid #a855f7;
-      border-radius: 12px;
-      padding: 16px;
+    .config-section {
       margin-bottom: 16px;
     }
     
-    .shared-section h4 {
-      color: #a855f7;
-      font-size: 14px;
+    .config-section h4 {
+      font-size: 13px;
       font-weight: 600;
       margin-bottom: 8px;
-    }
-    
-    .shared-section p {
-      color: #a0a0b0;
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
-    
-    .error {
-      background: #3a1a1a;
-      border: 1px solid #5a2a2a;
-      border-radius: 8px;
-      padding: 12px;
-      color: #ffa0a0;
-      font-size: 13px;
-      margin-bottom: 16px;
     }
   </style>
 </head>
@@ -493,17 +265,7 @@
   <div id="app">
     <div class="header">
       <h1>S1 Hero Prompt Engine</h1>
-    </div>
-    
-    <div class="step-indicator">
-      <div class="step-progress-bar">
-        <div class="step-segment" id="segment-1"></div>
-        <div class="step-segment" id="segment-2"></div>
-        <div class="step-segment" id="segment-3"></div>
-        <div class="step-segment" id="segment-4"></div>
-        <div class="step-segment" id="segment-5"></div>
-      </div>
-      <div class="step-label" id="step-label">STEP 1 / 5 · Mode Selection</div>
+      <div class="step-indicator" id="step-indicator">STEP 1 / 5</div>
     </div>
     
     <div class="content">
@@ -557,7 +319,7 @@
         <div class="card">
           <h3>Describe Your Subject</h3>
           <p>What are you creating prompts for?</p>
-          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..." oninput="state.subjects = this.value; updateFooter(); triggerPrefetch()"></textarea>
+          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..."></textarea>
         </div>
         
         <div class="card">
@@ -567,22 +329,9 @@
             <span>Product Reference</span>
             <div class="toggle-switch" id="product-ref-toggle"></div>
           </div>
-          <div id="product-upload-zone" style="display: none;">
-            <div class="upload-zone" id="product-upload-zone-inner">
-              <p>Drag & drop or click to upload</p>
-              <button id="product-figma-btn">Use Selected Figma Frame</button>
-            </div>
-          </div>
-          
           <div class="toggle" id="scene-ref-toggle-btn">
             <span>Scene Reference</span>
             <div class="toggle-switch" id="scene-ref-toggle"></div>
-          </div>
-          <div id="scene-upload-zone" style="display: none;">
-            <div class="upload-zone" id="scene-upload-zone-inner">
-              <p>Drag & drop or click to upload</p>
-              <button id="scene-figma-btn">Use Selected Figma Frame</button>
-            </div>
           </div>
         </div>
       </div>
@@ -593,53 +342,8 @@
           <div class="spinner"></div>
           <div class="loader-text">Art-directing your inputs…</div>
         </div>
-        
         <div id="step3-content" style="display: none;">
-          <div id="shared-section" class="shared-section" style="display: none;">
-            <h4>Shared Style DNA</h4>
-            <p id="shared-mood"></p>
-            <p id="shared-style" style="color: #a855f7; font-weight: 600;"></p>
-          </div>
-          
-          <div id="tab-bar" class="tab-bar" style="display: none;"></div>
-          
-          <div id="single-subject-config" class="card">
-            <h3>Base Configuration</h3>
-            <p>AI-recommended settings based on your subject</p>
-            
-            <div class="config-section">
-              <h4>Background</h4>
-              <select id="background-select" class="config-select"></select>
-            </div>
-            
-            <div class="config-section">
-              <h4>Surface</h4>
-              <select id="surface-select" class="config-select"></select>
-            </div>
-            
-            <div class="config-section">
-              <h4>Arrangement</h4>
-              <select id="arrangement-select" class="config-select"></select>
-            </div>
-            
-            <div class="config-section">
-              <h4>Camera</h4>
-              <select id="camera-select" class="config-select"></select>
-            </div>
-            
-            <div class="config-section">
-              <h4>Lighting</h4>
-              <select id="lighting-select" class="config-select"></select>
-            </div>
-          </div>
-          
-          <div id="multi-subject-configs" style="display: none;"></div>
-          
-          <div id="contextual-section" class="card" style="display: none;">
-            <h3>Contextual Inputs</h3>
-            <p>Additional context based on your category</p>
-            <div id="contextual-inputs"></div>
-          </div>
+          <div id="single-subject-config"></div>
         </div>
       </div>
       
@@ -699,10 +403,6 @@
             <h4>Generate Prompt</h4>
             <p>Create your final prompt</p>
           </div>
-          <div class="option" id="modify-config-btn">
-            <h4>Modify Config</h4>
-            <p>Adjust settings</p>
-          </div>
           <div class="option" id="reset-all-btn">
             <h4>Reset All</h4>
             <p>Start over</p>
@@ -712,66 +412,7 @@
         <div id="result-section" style="display: none; margin-top: 16px;">
           <div class="card">
             <h3>Your Prompt</h3>
-            <div class="result-screen">
-              <div id="result-text" class="result-text"></div>
-            </div>
-          </div>
-          <div id="step6-menu" class="card" style="margin-top: 16px;">
-            <h3>What would you like to do next?</h3>
-            <div class="option-grid">
-              <div class="option" id="close-task-btn">
-                <h4>Close Task</h4>
-                <p>Finish and exit</p>
-              </div>
-              <div class="option" id="show-step61-btn">
-                <h4>Generate Another Version</h4>
-                <p>Iterate on this prompt</p>
-              </div>
-              <div class="option" id="modify-config-btn-2">
-                <h4>Modify Inputs</h4>
-                <p>Adjust settings</p>
-              </div>
-            </div>
-          </div>
-          <div id="step61-menu" class="card" style="margin-top: 16px; display: none;">
-            <h3>How would you like to proceed?</h3>
-            <div class="option-grid">
-              <div class="option" id="show-user-iteration-btn">
-                <h4>Describe Changes You Want</h4>
-                <p>Freeform input</p>
-              </div>
-              <div class="option" id="show-ai-suggestion-btn">
-                <h4>Let Me Suggest Better Direction</h4>
-                <p>AI-powered iteration</p>
-              </div>
-            </div>
-          </div>
-          <div id="user-iteration-input" class="card" style="margin-top: 16px; display: none;">
-            <h3>Describe What You'd Like to Change</h3>
-            <p>You can suggest anything: subject, background, lighting, depth, color palette, composition, props, scene, action</p>
-            <textarea id="iteration-text" style="width: 100%; min-height: 100px; background: #252532; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical;" placeholder="Example: make it darker and more premium, or add a subtle accent object"></textarea>
-            <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
-              <button class="button button-secondary" id="cancel-iteration-btn">Cancel</button>
-              <button class="button" id="submit-iteration-btn">Apply Changes</button>
-            </div>
-          </div>
-          <div id="ai-suggestion-output" class="card" style="margin-top: 16px; display: none;">
-            <h3>AI Suggestion</h3>
-            <p id="ai-suggestion-text"></p>
-            <div class="option-grid" style="margin-top: 16px;">
-              <div class="option" id="apply-suggestion-btn">
-                <h4>Yes, Try This</h4>
-                <p>Regenerate with suggestion</p>
-              </div>
-              <div class="option" id="get-another-suggestion-btn">
-                <h4>Suggest Another Option</h4>
-                <p>Different direction</p>
-              </div>
-              <div class="option" id="back-to-menu-btn">
-                <h4>Go Back</h4>
-                <p>Return to menu</p>
-              </div>
-            </div>
+            <div id="result-text" style="background: #252532; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; white-space: pre-wrap;"></div>
           </div>
         </div>
       </div>
@@ -793,506 +434,25 @@
       subjects: '',
       productRef: false,
       sceneRef: false,
-      productImages: [],
-      sceneImages: [],
-      step3Config: null,
-      step3ConfigCached: false,
       preset: 'ikea-minimal',
       noBranding: false,
       motionAccents: false,
       consistencyMode: false,
       config: {
-        background: defaultConfig.background,
-        surface: defaultConfig.surface,
-        arrangement: defaultConfig.arrangement,
-        camera: defaultConfig.camera,
-        lighting: defaultConfig.lighting,
-        style: defaultConfig.stylePreset,
-        branding: defaultConfig.branding
-      },
-      subjectConfigs: {}
+        background: 'clean studio',
+        surface: 'neutral matte',
+        arrangement: 'centered hero',
+        camera: 'eye-level',
+        lighting: 'soft diffused',
+        style: 'ecommerce clean',
+        branding: 'off'
+      }
     };
     
     const BACKEND_URL = 'https://backend-mocha-six-61.vercel.app/api/chat';
     
-    // Attach event listeners for mode options
-    document.querySelectorAll('.option[data-mode]').forEach(el => {
-      el.addEventListener('click', () => {
-        const mode = el.dataset.mode;
-        window.selectMode(mode);
-      });
-    });
-    
-    // Attach event listeners for variation options
-    document.querySelectorAll('.option[data-level]').forEach(el => {
-      el.addEventListener('click', () => {
-        const level = el.dataset.level;
-        window.selectVariation(level);
-      });
-    });
-    
-    // Attach event listeners for Step 2 toggles
-    document.getElementById('product-ref-toggle-btn')?.addEventListener('click', window.toggleProductRef);
-    document.getElementById('scene-ref-toggle-btn')?.addEventListener('click', window.toggleSceneRef);
-    document.getElementById('product-figma-btn')?.addEventListener('click', () => window.getFigmaSelection('product'));
-    document.getElementById('scene-figma-btn')?.addEventListener('click', () => window.getFigmaSelection('scene'));
-    
-    // Attach event listeners for Step 4 presets
-    document.querySelectorAll('.option[data-preset]').forEach(el => {
-      el.addEventListener('click', () => {
-        const preset = el.dataset.preset;
-        window.selectPreset(preset);
-      });
-    });
-    
-    // Attach event listeners for Step 4 toggles
-    document.getElementById('no-branding-toggle-btn')?.addEventListener('click', window.toggleNoBranding);
-    document.getElementById('motion-accents-toggle-btn')?.addEventListener('click', window.toggleMotionAccents);
-    document.getElementById('consistency-toggle-btn')?.addEventListener('click', window.toggleConsistencyMode);
-    
-    // Attach event listeners for navigation buttons
-    document.getElementById('global-back')?.addEventListener('click', window.goBack);
-    document.getElementById('global-continue')?.addEventListener('click', window.goNext);
-    
-    // Attach event listeners for Step 5 buttons
-    document.getElementById('generate-prompt-btn')?.addEventListener('click', window.generatePrompt);
-    document.getElementById('modify-config-btn')?.addEventListener('click', window.modifyConfig);
-    document.getElementById('reset-all-btn')?.addEventListener('click', window.resetAll);
-    
-    // Attach event listeners for Step 6 menu buttons
-    document.getElementById('close-task-btn')?.addEventListener('click', window.closeTask);
-    document.getElementById('show-step61-btn')?.addEventListener('click', window.showStep61);
-    document.getElementById('modify-config-btn-2')?.addEventListener('click', window.modifyConfig);
-    document.getElementById('show-user-iteration-btn')?.addEventListener('click', window.showUserIteration);
-    document.getElementById('show-ai-suggestion-btn')?.addEventListener('click', window.showAISuggestion);
-    document.getElementById('cancel-iteration-btn')?.addEventListener('click', window.showStep61);
-    document.getElementById('submit-iteration-btn')?.addEventListener('click', window.submitUserIteration);
-    document.getElementById('apply-suggestion-btn')?.addEventListener('click', window.applyAISuggestion);
-    document.getElementById('get-another-suggestion-btn')?.addEventListener('click', window.showAISuggestion);
-    document.getElementById('back-to-menu-btn')?.addEventListener('click', window.showStep61);
-    
-    // Event delegation for dynamically created thumbnail remove buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('thumbnail-remove')) {
-        const type = e.target.dataset.type;
-        const index = parseInt(e.target.dataset.index);
-        window.removeImage(type, index);
-      }
-    });
-    
-    const defaultConfig = {
-      background: "clean studio",
-      surface: "neutral matte",
-      arrangement: "centered hero",
-      camera: "eye-level",
-      lighting: "soft diffused",
-      stylePreset: "ecommerce clean",
-      branding: "off"
-    };
-    
-    // Helper function to enforce exactly 2 alternatives per input
-    function enforceTwoAlternatives(input) {
-      if (!input.alternatives || !Array.isArray(input.alternatives)) {
-        input.alternatives = [];
-      }
-      
-      // If more than 2 alternatives, keep first and most distinct
-      if (input.alternatives.length > 2) {
-        console.log(`Trimming alternatives from ${input.alternatives.length} to 2 for ${input.label}`);
-        input.alternatives = [input.alternatives[0], input.alternatives[input.alternatives.length - 1]];
-      }
-      
-      // If fewer than 2 alternatives, auto-generate
-      if (input.alternatives.length < 2) {
-        console.log(`Auto-generating alternatives for ${input.label} (currently ${input.alternatives.length})`);
-        const existing = input.alternatives[0] || input.default;
-        
-        // Generate a variation by changing key words
-        const variations = {
-          'Background': ['Deep charcoal backdrop', 'Warm white backdrop'],
-          'Surface': ['Marble surface', 'Wood surface'],
-          'Arrangement': ['Offset composition', 'Elevated placement'],
-          'Camera': ['Side profile angle', 'Low hero angle'],
-          'Lighting': ['Dramatic side lighting', 'Bright studio lighting'],
-          'Style Preset': ['Luxury Premium', 'IKEA Minimal'],
-          'Branding': ['Preserve branding', 'Minimal branding']
-        };
-        
-        const defaults = variations[input.label] || ['Alternative 1', 'Alternative 2'];
-        
-        if (input.alternatives.length === 0) {
-          input.alternatives = defaults;
-        } else {
-          input.alternatives.push(defaults[0]);
-        }
-      }
-      
-      return input;
-    }
-    
-    // Helper function to normalize any backend response to consistent format
-    function normalizeConfigResponse(apiResponse) {
-      console.log("=== NORMALIZING CONFIG RESPONSE ===");
-      console.log("Input:", JSON.stringify(apiResponse, null, 2));
-      
-      // If response is a string with markdown, strip and parse
-      if (typeof apiResponse === 'string') {
-        console.log("Response is string, attempting to parse");
-        let cleanString = apiResponse.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-        try {
-          apiResponse = JSON.parse(cleanString);
-          console.log("Successfully parsed string to JSON");
-        } catch (e) {
-          console.error("Failed to parse string as JSON:", e);
-        }
-      }
-      
-      // If already in standard format, enforce 2 alternatives per input
-      if (apiResponse.inputs && Array.isArray(apiResponse.inputs)) {
-        console.log("Already in standard inputs format, enforcing 2 alternatives");
-        apiResponse.inputs = apiResponse.inputs.map(enforceTwoAlternatives);
-        return apiResponse;
-      }
-      
-      // Normalize legacy base_inputs format to standard inputs format
-      if (apiResponse.base_inputs) {
-        console.log("Converting legacy base_inputs format to standard");
-        const inputs = [];
-        const baseInputs = apiResponse.base_inputs;
-        
-        // Convert each base_input to standard input format
-        if (baseInputs.background) {
-          inputs.push({
-            label: 'Background',
-            default: baseInputs.background.default || baseInputs.background,
-            alternatives: baseInputs.background.alternatives || [baseInputs.background]
-          });
-        }
-        if (baseInputs.surface) {
-          inputs.push({
-            label: 'Surface',
-            default: baseInputs.surface.default || baseInputs.surface,
-            alternatives: baseInputs.surface.alternatives || [baseInputs.surface]
-          });
-        }
-        if (baseInputs.arrangement) {
-          inputs.push({
-            label: 'Arrangement',
-            default: baseInputs.arrangement.default || baseInputs.arrangement,
-            alternatives: baseInputs.arrangement.alternatives || [baseInputs.arrangement]
-          });
-        }
-        if (baseInputs.camera) {
-          inputs.push({
-            label: 'Camera',
-            default: baseInputs.camera.default || baseInputs.camera,
-            alternatives: baseInputs.camera.alternatives || [baseInputs.camera]
-          });
-        }
-        if (baseInputs.lighting) {
-          inputs.push({
-            label: 'Lighting',
-            default: baseInputs.lighting.default || baseInputs.lighting,
-            alternatives: baseInputs.lighting.alternatives || [baseInputs.lighting]
-          });
-        }
-        if (baseInputs.stylePreset) {
-          inputs.push({
-            label: 'Style Preset',
-            default: baseInputs.stylePreset.default || baseInputs.stylePreset,
-            alternatives: baseInputs.stylePreset.alternatives || [baseInputs.stylePreset]
-          });
-        }
-        if (baseInputs.branding) {
-          inputs.push({
-            label: 'Branding',
-            default: baseInputs.branding.default || baseInputs.branding,
-            alternatives: baseInputs.branding.alternatives || [baseInputs.branding]
-          });
-        }
-        
-        // Enforce exactly 2 alternatives per input
-        inputs.forEach(enforceTwoAlternatives);
-        return { inputs };
-      }
-      
-      // Normalize per-subject format to standard inputs format (for single subject)
-      if (apiResponse.subjects && Array.isArray(apiResponse.subjects) && apiResponse.subjects.length > 0) {
-        console.log("Converting per-subject format to standard");
-        const subject = apiResponse.subjects[0];
-        const baseInputs = subject.base_inputs || {};
-        
-        const inputs = [];
-        const fieldMapping = {
-          background: 'Background',
-          surface: 'Surface',
-          arrangement: 'Arrangement',
-          camera: 'Camera',
-          lighting: 'Lighting'
-        };
-        
-        Object.keys(fieldMapping).forEach(key => {
-          const field = baseInputs[key];
-          if (field) {
-            inputs.push({
-              label: fieldMapping[key],
-              default: field.default || defaultConfig[key],
-              alternatives: field.alternatives || [defaultConfig[key]]
-            });
-          } else {
-            inputs.push({
-              label: fieldMapping[key],
-              default: defaultConfig[key],
-              alternatives: [defaultConfig[key]]
-            });
-          }
-        });
-        
-        // Add style preset and branding
-        inputs.push({
-          label: 'Style Preset',
-          default: baseInputs.stylePreset || defaultConfig.stylePreset,
-          alternatives: [defaultConfig.stylePreset]
-        });
-        inputs.push({
-          label: 'Branding',
-          default: baseInputs.branding || defaultConfig.branding,
-          alternatives: [defaultConfig.branding]
-        });
-        
-        // Enforce exactly 2 alternatives per input
-        inputs.forEach(enforceTwoAlternatives);
-        
-        // Add contextual inputs if present
-        if (subject.contextual_inputs) {
-          Object.keys(subject.contextual_inputs).forEach(key => {
-            const field = subject.contextual_inputs[key];
-            inputs.push({
-              label: key,
-              default: field.default || 'N/A',
-              alternatives: field.alternatives || ['N/A']
-            });
-          });
-        }
-        
-        return { inputs };
-      }
-      
-      // If unknown format, create default structure
-      console.warn("Unknown format, creating default structure");
-      const defaultInputs = [
-        { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-        { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-        { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-        { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-        { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-        { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-        { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-      ];
-      defaultInputs.forEach(enforceTwoAlternatives);
-      return { inputs: defaultInputs };
-    }
-    
-    // Helper function to ensure config has complete structure
-    function ensureConfigStructure(config) {
-      const safeConfig = config || {};
-      
-      // FIRST: Handle markdown-wrapped string before any other checks
-      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
-        console.warn('ensureConfigStructure: Config is string with markdown, parsing FIRST');
-        let configString = safeConfig;
-        configString = configString.replace(/\\n/g, '\n');
-        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-        configString = configString.replace(/^\n+|\n+$/g, '');
-        try {
-          const parsed = JSON.parse(configString);
-          console.log('ensureConfigStructure: Successfully parsed markdown string');
-          return ensureConfigStructure(parsed); // Recursively call with parsed object
-        } catch (e) {
-          console.error('ensureConfigStructure: Failed to parse markdown string:', e);
-        }
-      }
-      
-      // If it's the new inputs array format, ensure each input has required structure
-      if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
-        return safeConfig;
-      }
-      
-      // For legacy formats, ensure base_inputs has all required fields
-      if (safeConfig.base_inputs) {
-        const baseInputs = safeConfig.base_inputs;
-        if (!baseInputs.background) baseInputs.background = { default: defaultConfig.background, alternatives: [defaultConfig.background] };
-        if (!baseInputs.surface) baseInputs.surface = { default: defaultConfig.surface, alternatives: [defaultConfig.surface] };
-        if (!baseInputs.arrangement) baseInputs.arrangement = { default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] };
-        if (!baseInputs.camera) baseInputs.camera = { default: defaultConfig.camera, alternatives: [defaultConfig.camera] };
-        if (!baseInputs.lighting) baseInputs.lighting = { default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] };
-      }
-      
-      // For per-subject formats, ensure each subject has complete base_inputs
-      if (safeConfig.subjects && Array.isArray(safeConfig.subjects)) {
-        safeConfig.subjects.forEach(subject => {
-          if (!subject.base_inputs) subject.base_inputs = {};
-          const baseInputs = subject.base_inputs;
-          if (!baseInputs.background) baseInputs.background = { default: defaultConfig.background, alternatives: [defaultConfig.background] };
-          if (!baseInputs.surface) baseInputs.surface = { default: defaultConfig.surface, alternatives: [defaultConfig.surface] };
-          if (!baseInputs.arrangement) baseInputs.arrangement = { default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] };
-          if (!baseInputs.camera) baseInputs.camera = { default: defaultConfig.camera, alternatives: [defaultConfig.camera] };
-          if (!baseInputs.lighting) baseInputs.lighting = { default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] };
-        });
-      }
-      
-      // If config is still not recognized, check if it's a string with markdown and parse it
-      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
-        console.warn('ensureConfigStructure: Config is string with markdown, parsing');
-        let cleanString = safeConfig.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-        try {
-          const parsed = JSON.parse(cleanString);
-          return ensureConfigStructure(parsed);
-        } catch (e) {
-          console.error('ensureConfigStructure: Failed to parse markdown string:', e);
-        }
-      }
-      
-      return safeConfig;
-    }
-    
-    const stepNames = [
-      'Mode Selection',
-      'Subject & References',
-      'Base Visual Setup',
-      'Style & Toggles',
-      'Locked Config'
-    ];
-    
-    function updateStepIndicator() {
-      for (let i = 1; i <= 5; i++) {
-        const segment = document.getElementById(`segment-${i}`);
-        segment.classList.remove('completed', 'active');
-        
-        if (i < state.currentStep) {
-          segment.classList.add('completed');
-        } else if (i === state.currentStep) {
-          segment.classList.add('active');
-        }
-      }
-      
-      const label = document.getElementById('step-label');
-      label.textContent = `STEP ${state.currentStep} / 5 · ${stepNames[state.currentStep - 1]}`;
-    }
-    
-    // Update footer state based on current step
-    function updateFooter() {
-      const backBtn = document.getElementById('global-back');
-      const continueBtn = document.getElementById('global-continue');
-      const footer = document.querySelector('.nav-buttons');
-      
-      // Hide footer on result screen
-      if (state.currentStep === 5 && document.getElementById('result-section').style.display === 'block') {
-        footer.style.display = 'none';
-        return;
-      } else {
-        footer.style.display = 'flex';
-      }
-      
-      // Update Back button state
-      if (state.currentStep === 1) {
-        backBtn.disabled = true;
-      } else {
-        backBtn.disabled = false;
-      }
-      
-      // Update Continue button text and state
-      if (state.currentStep === 5) {
-        continueBtn.textContent = 'Generate Prompt';
-      } else {
-        continueBtn.textContent = 'Continue →';
-      }
-      
-      // Update Continue button disabled state based on validation
-      updateContinueButtonState();
-    }
-    
-    function updateContinueButtonState() {
-      const continueBtn = document.getElementById('global-continue');
-      
-      switch (state.currentStep) {
-        case 1:
-          // TYPE A: Required Input - requires mode selection
-          continueBtn.disabled = !state.mode || (state.mode === 'variation' && !state.variationLevel);
-          break;
-        case 2:
-          // TYPE A: Required Input - requires subject input and images if toggles are on
-          const hasSubject = state.subjects.trim().length > 0;
-          const hasProductImages = !state.productRef || state.productImages.length > 0;
-          const hasSceneImages = !state.sceneRef || state.sceneImages.length > 0;
-          continueBtn.disabled = !hasSubject || !hasProductImages || !hasSceneImages;
-          break;
-        case 3:
-          // TYPE B: Optional/Pre-filled - enabled by default, only disable if config fails to load
-          // Config has defaults, so Continue is always enabled unless loading fails
-          continueBtn.disabled = false;
-          break;
-        case 4:
-          // TYPE B: Optional/Pre-filled - has default preset, always enabled
-          continueBtn.disabled = false;
-          break;
-        case 5:
-          // TYPE B: Optional/Pre-filled - always enabled
-          continueBtn.disabled = false;
-          break;
-      }
-    }
-    
-    window.goBack = function() {
-      if (state.currentStep > 1) {
-        goToStep(state.currentStep - 1);
-      }
-    };
-    
-    window.goNext = function() {
-      if (state.currentStep === 5) {
-        generatePrompt();
-      } else {
-        goToStep(state.currentStep + 1);
-      }
-    };
-    
-    window.goToStep = function(stepNumber) {
-      // Hide all steps
-      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-      
-      // Show target step
-      document.getElementById(`step${stepNumber}`).classList.add('active');
-      
-      // Update current step
-      state.currentStep = stepNumber;
-      
-      // Step-specific initialization
-      if (stepNumber === 3) {
-        if (!state.step3ConfigCached) {
-          fetchStep3Config();
-        } else {
-          renderStep3Config();
-        }
-      }
-      
-      if (stepNumber === 4) {
-        selectPreset('ikea-minimal');
-      }
-      
-      if (stepNumber === 5) {
-        renderConfigSummary();
-      }
-      
-      // Update footer
-      updateFooter();
-      
-      // Update step indicator
-      updateStepIndicator();
-    }
-    
     // Step 1: Mode Selection
-    window.selectMode = function(mode) {
+    function selectMode(mode) {
       state.mode = mode;
       document.querySelectorAll('#step1 .option[data-mode]').forEach(el => {
         el.classList.remove('selected');
@@ -1304,1044 +464,388 @@
         mode === 'variation' ? 'block' : 'none';
       
       updateFooter();
-    };
+    }
     
-    window.selectVariation = function(level) {
+    function selectVariation(level) {
       state.variationLevel = level;
       document.querySelectorAll('#step1 .option[data-level]').forEach(el => {
         el.classList.remove('selected');
         if (el.dataset.level === level) el.classList.add('selected');
       });
       updateFooter();
-    };
+    }
     
-    // Step 2: Subjects & References
-    window.toggleProductRef = function() {
+    // Step 2: Toggles
+    function toggleProductRef() {
       state.productRef = !state.productRef;
       document.getElementById('product-ref-toggle').classList.toggle('on');
-      document.getElementById('product-upload-zone').style.display = state.productRef ? 'block' : 'none';
       updateFooter();
-    };
+    }
     
-    window.toggleSceneRef = function() {
+    function toggleSceneRef() {
       state.sceneRef = !state.sceneRef;
       document.getElementById('scene-ref-toggle').classList.toggle('on');
-      document.getElementById('scene-upload-zone').style.display = state.sceneRef ? 'block' : 'none';
-      updateFooter();
-    };
-    
-    window.getFigmaSelection = function(type) {
-      parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
-    };
-    
-    function handleFileUpload(type, files) {
-      const maxImages = type === 'product' ? (state.mode === 'single' ? 1 : 6) : 1;
-      const targetArray = type === 'product' ? state.productImages : state.sceneImages;
-      
-      for (let i = 0; i < files.length; i++) {
-        if (targetArray.length >= maxImages) break;
-        
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const base64 = e.target.result.replace('data:image/png;base64,', '');
-          targetArray.push(base64);
-          renderThumbnails(type);
-          updateFooter();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-    
-    function renderThumbnails(type) {
-      const container = document.getElementById(`${type}-thumbnails`);
-      const images = type === 'product' ? state.productImages : state.sceneImages;
-      
-      container.innerHTML = '';
-      images.forEach((img, index) => {
-        const thumbnail = document.createElement('div');
-        thumbnail.className = 'thumbnail';
-        thumbnail.innerHTML = `
-          <img src="data:image/png;base64,${img}" alt="Uploaded image">
-          <div class="thumbnail-remove" data-type="${type}" data-index="${index}">×</div>
-        `;
-        container.appendChild(thumbnail);
-      });
-    }
-    
-    window.removeImage = function(type, index) {
-      if (type === 'product') {
-        state.productImages.splice(index, 1);
-      } else {
-        state.sceneImages.splice(index, 1);
-      }
-      renderThumbnails(type);
       updateFooter();
     }
     
-    // Listen for Figma selection messages
-    window.onmessage = (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-images') {
-        const images = event.data.pluginMessage.images;
-        // Determine which upload zone is active based on current state
-        if (state.productRef) {
-          const maxImages = state.mode === 'single' ? 1 : 6;
-          images.forEach((img, i) => {
-            if (state.productImages.length < maxImages) {
-              state.productImages.push(img);
-            }
-          });
-          renderThumbnails('product');
-        } else if (state.sceneRef) {
-          if (state.sceneImages.length === 0) {
-            state.sceneImages.push(images[0]);
-            renderThumbnails('scene');
-          }
-        }
-        updateFooter();
-      }
-    };
-    
-    // Setup drag and drop handlers
-    function setupDragAndDrop(type) {
-      const zone = document.getElementById(`${type}-upload-zone`);
-      if (!zone) return;
-      
-      zone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        zone.classList.add('drag-over');
-      });
-      
-      zone.addEventListener('dragleave', () => {
-        zone.classList.remove('drag-over');
-      });
-      
-      zone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        zone.classList.remove('drag-over');
-        handleFileUpload(type, e.dataTransfer.files);
-      });
-      
-      zone.addEventListener('paste', (e) => {
-        const items = e.clipboardData.items;
-        const files = [];
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') !== -1) {
-            files.push(items[i].getAsFile());
-          }
-        }
-        if (files.length > 0) {
-          handleFileUpload(type, files);
-        }
-      });
-    }
-    
-    // Prefetch Step 3 config
-    let prefetchTimeout = null;
-    function triggerPrefetch() {
-      if (prefetchTimeout) clearTimeout(prefetchTimeout);
-      prefetchTimeout = setTimeout(() => {
-        if (state.subjects.trim().length > 0 && !state.step3ConfigCached) {
-          fetchStep3Config();
-        }
-      }, 1000); // Wait 1 second after user stops typing
-    }
-    
-    // Step 3: Config (API-driven)
-    async function fetchStep3Config() {
-      // Always fetch to ensure fresh data with the fix
-      // if (state.step3ConfigCached) return;
-      
-      // PRE-VALIDATION: Clear any cached markdown-wrapped config
-      if (state.step3Config && typeof state.step3Config === 'string' && state.step3Config.includes('```')) {
-        console.warn("PRE-VALIDATION: Clearing cached markdown config");
-        state.step3Config = null;
-        state.step3ConfigCached = false;
-      }
-      
-      // Capture STEP 2 data
-      const step2Data = {
-        mode: state.mode,
-        variationLevel: state.variationLevel,
-        subjects: state.subjects,
-        productRef: state.productRef ? 'yes' : 'no',
-        sceneRef: state.sceneRef ? 'yes' : 'no',
-        sceneImages: state.sceneImages
-      };
-      
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-        
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phase: 'step3_config',
-            lockedConfig: step2Data
-          }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("BACKEND RESPONSE:", data);
-        console.log("=== STEP 3 BACKEND RESPONSE ===");
-        console.log("Raw response:", JSON.stringify(data, null, 2));
-        console.log("Response type:", typeof data);
-        console.log("Has reply:", !!data.reply);
-        console.log("Reply type:", data.reply ? typeof data.reply : 'N/A');
-        
-        // Parse response - backend returns { "reply": { "inputs": [...] } } or { "reply": "..." }
-        let apiConfig = data;
-        if (data.reply) {
-          if (typeof data.reply === 'string') {
-            let replyString = data.reply;
-            console.log("Original reply string:", replyString);
-            
-            // AGGRESSIVE markdown stripping - handle all variations including escaped newlines
-            // First, replace escaped newlines with actual newlines
-            replyString = replyString.replace(/\\n/g, '\n');
-            // Then strip markdown code blocks
-            replyString = replyString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-            // Remove any remaining newlines at start/end
-            replyString = replyString.replace(/^\n+|\n+$/g, '');
-            console.log("After markdown strip:", replyString);
-            
-            try {
-              apiConfig = JSON.parse(replyString);
-              console.log("Parsed successfully:", apiConfig);
-            } catch (e) {
-              console.error("JSON parse error:", e);
-              // If parse fails, try one more time with different regex
-              replyString = replyString.replace(/```/g, '').trim();
-              try {
-                apiConfig = JSON.parse(replyString);
-                console.log("Second parse attempt successful:", apiConfig);
-              } catch (e2) {
-                console.error("Second parse failed:", e2);
-                apiConfig = replyString;
-              }
-            }
-          } else {
-            apiConfig = data.reply;
-          }
-        }
-        
-        // Normalize response to consistent format before processing
-        const normalizedConfig = normalizeConfigResponse(apiConfig);
-        console.log("Normalized config:", JSON.stringify(normalizedConfig, null, 2));
-        
-        // Final check - if still a string, try to strip markdown again
-        if (typeof normalizedConfig === 'string') {
-          console.warn("Normalized config is still string, stripping markdown again");
-          let cleanString = normalizedConfig.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-          try {
-            const finalConfig = JSON.parse(cleanString);
-            state.step3Config = finalConfig;
-            console.log("Final parsed config:", finalConfig);
-          } catch (e) {
-            console.error("Final parse failed:", e);
-            state.step3Config = cleanString;
-          }
-        } else {
-          state.step3Config = normalizedConfig;
-        }
-        
-        // Ensure config has complete structure before storing
-        state.step3Config = ensureConfigStructure(state.step3Config);
-        
-        // ULTIMATE DEFENSIVE CHECK - if config is still a string with markdown, strip it
-        if (typeof state.step3Config === 'string' && state.step3Config.includes('```')) {
-          console.warn("ULTIMATE: Config still has markdown, stripping");
-          let cleanString = state.step3Config.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-          try {
-            state.step3Config = JSON.parse(cleanString);
-            console.log("ULTIMATE: Successfully parsed after strip");
-          } catch (e) {
-            console.error("ULTIMATE: Parse failed, using defaults");
-            state.step3Config = {
-              inputs: [
-                { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-                { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-                { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-                { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-                { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-                { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-                { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-              ]
-            };
-          }
-        }
-        
-        state.step3ConfigCached = true;
-        
-        renderStep3Config();
-      } catch (error) {
-        console.error('Failed to fetch Step 3 config:', error);
-        // Use default config as fallback instead of requiring retry
-        console.warn('Using default config as fallback');
-        const fallbackConfig = {
-          inputs: [
-            { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-            { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-            { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-            { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-            { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-            { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-            { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-          ]
-        };
-        state.step3Config = ensureConfigStructure(fallbackConfig);
-        state.step3ConfigCached = true;
-        renderStep3Config();
-      }
-    }
-    
-    function renderStep3Config() {
-      let config = state.step3Config;
-      
-      console.log("=== RENDER STEP 3 CONFIG ===");
-      console.log("Config type:", typeof config);
-      console.log("Config value:", config);
-      
-      // IMMEDIATE MARKDOWN STRIPPING - handle string with markdown FIRST
-      if (config && typeof config === 'string' && config.includes('```')) {
-        console.warn('Config is string with markdown, stripping IMMEDIATELY');
-        let configString = config;
-        // Replace escaped newlines first
-        configString = configString.replace(/\\n/g, '\n');
-        // Strip markdown
-        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-        // Remove newlines at start/end
-        configString = configString.replace(/^\n+|\n+$/g, '');
-        try {
-          config = JSON.parse(configString);
-          state.step3Config = config;
-          console.log("Successfully parsed markdown string to JSON");
-        } catch (e) {
-          console.error('Failed to parse markdown string:', e);
-          // Use defaults if parsing fails
-          config = {
-            inputs: [
-              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-            ]
-          };
-          state.step3Config = config;
-        }
-      }
-      
-      // AGGRESSIVE MARKDOWN CHECK - check if config contains markdown regardless of type
-      if (config && (typeof config === 'string' || (typeof config === 'object' && JSON.stringify(config).includes('```')))) {
-        console.warn('Config contains markdown, stripping AGGRESSIVELY');
-        let configString = typeof config === 'string' ? config : JSON.stringify(config);
-        configString = configString.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-        try {
-          config = JSON.parse(configString);
-          state.step3Config = config;
-          console.log("Successfully stripped and parsed markdown config");
-        } catch (e) {
-          console.error('Failed to parse after markdown strip:', e);
-          // Use defaults if parsing fails
-          config = {
-            inputs: [
-              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-            ]
-          };
-          state.step3Config = config;
-        }
-      }
-      
-      // If config is null or undefined, use fallback defaults
-      if (!config) {
-        console.warn('Config is null/undefined, using default fallback');
-        const fallbackConfig = {
-          inputs: [
-            { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-            { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-            { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-            { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-            { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-            { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-            { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-          ]
-        };
-        state.step3Config = ensureConfigStructure(fallbackConfig);
-        renderStep3Config();
-        return;
-      }
-      
-      // Ensure config structure is complete before rendering
-      const safeConfig = ensureConfigStructure(config);
-      
-      // FINAL DEFENSIVE CHECK: if still a string with markdown, strip and parse
-      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
-        console.warn('FINAL: safeConfig is still string with markdown, stripping');
-        let configString = safeConfig;
-        configString = configString.replace(/\\n/g, '\n');
-        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-        configString = configString.replace(/^\n+|\n+$/g, '');
-        try {
-          const parsed = JSON.parse(configString);
-          state.step3Config = parsed;
-          console.log("FINAL: Successfully parsed to JSON");
-          return renderStep3Config(); // Retry with parsed config
-        } catch (e) {
-          console.error("FINAL: Parse failed, using defaults");
-          state.step3Config = {
-            inputs: [
-              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-            ]
-          };
-          return renderStep3Config(); // Retry with defaults
-        }
-      }
-      
-      // Check if response is in new simple inputs array format
-      if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
-        // New format: simple inputs array with subject-specific rich defaults
-        document.getElementById('shared-section').style.display = 'none';
-        document.getElementById('tab-bar').style.display = 'none';
-        document.getElementById('single-subject-config').style.display = 'block';
-        document.getElementById('multi-subject-configs').style.display = 'none';
-        
-        // Clear existing config sections
-        const configContainer = document.getElementById('single-subject-config');
-        const existingSections = configContainer.querySelectorAll('.config-section');
-        existingSections.forEach(section => section.remove());
-        
-        // Render each input as a dynamic form group
-        safeConfig.inputs.forEach(input => {
-          const section = document.createElement('div');
-          section.className = 'config-section';
-          
-          const label = document.createElement('h4');
-          label.textContent = input.label;
-          section.appendChild(label);
-          
-          const select = document.createElement('select');
-          select.className = 'config-select';
-          select.id = input.label.replace(/\s+/g, '-').toLowerCase() + '-select';
-          
-          // Add default and alternatives as options
-          const options = [input.default, ...input.alternatives];
-          options.forEach(optionText => {
-            const option = document.createElement('option');
-            option.value = optionText;
-            option.textContent = optionText;
-            select.appendChild(option);
-          });
-          
-          section.appendChild(select);
-          configContainer.appendChild(section);
-          
-          // Store in state using merge pattern to ensure defaults
-          const configKey = input.label.replace(/\s+/g, '-').toLowerCase();
-          state.config[configKey] = input.default || defaultConfig[configKey] || input.default;
-        });
-      } else if (safeConfig.shared && safeConfig.subjects) {
-        // Legacy per-subject format
-        const subjects = safeConfig.subjects;
-        const shared = safeConfig.shared;
-        
-        document.getElementById('shared-section').style.display = 'block';
-        document.getElementById('shared-mood').textContent = shared.moodNote || '';
-        document.getElementById('shared-style').textContent = 'Style: ' + (shared.styleSuggestion || 'auto');
-        
-        if (subjects.length > 1) {
-          document.getElementById('tab-bar').style.display = 'flex';
-          document.getElementById('single-subject-config').style.display = 'none';
-          document.getElementById('multi-subject-configs').style.display = 'block';
-          
-          const tabBar = document.getElementById('tab-bar');
-          tabBar.innerHTML = '';
-          
-          const sharedTab = document.createElement('div');
-          sharedTab.className = 'tab active';
-          sharedTab.textContent = 'Shared';
-          sharedTab.onclick = () => switchTab('shared');
-          tabBar.appendChild(sharedTab);
-          
-          subjects.forEach((subject, index) => {
-            const tab = document.createElement('div');
-            tab.className = 'tab';
-            tab.textContent = subject.name;
-            tab.dataset.subjectIndex = index;
-            tab.onclick = () => switchTab(index);
-            tabBar.appendChild(tab);
-          });
-          
-          renderMultiSubjectConfigs(subjects);
-        } else {
-          document.getElementById('tab-bar').style.display = 'none';
-          document.getElementById('single-subject-config').style.display = 'block';
-          document.getElementById('multi-subject-configs').style.display = 'none';
-          
-          const subject = subjects[0];
-          renderSingleSubjectConfig(subject);
-        }
-      } else if (safeConfig.base_inputs) {
-        // Legacy format - single config
-        document.getElementById('shared-section').style.display = 'none';
-        document.getElementById('tab-bar').style.display = 'none';
-        document.getElementById('single-subject-config').style.display = 'block';
-        document.getElementById('multi-subject-configs').style.display = 'none';
-        
-        const baseInputs = safeConfig.base_inputs;
-        if (baseInputs.background) populateSelect('background-select', baseInputs.background);
-        if (baseInputs.surface) populateSelect('surface-select', baseInputs.surface);
-        if (baseInputs.arrangement) populateSelect('arrangement-select', baseInputs.arrangement);
-        if (baseInputs.camera) populateSelect('camera-select', baseInputs.camera);
-        if (baseInputs.lighting) populateSelect('lighting-select', baseInputs.lighting);
-        
-        if (baseInputs.background) state.config.background = baseInputs.background.default;
-        if (baseInputs.surface) state.config.surface = baseInputs.surface.default;
-        if (baseInputs.arrangement) state.config.arrangement = baseInputs.arrangement.default;
-        if (baseInputs.camera) state.config.camera = baseInputs.camera.default;
-        if (baseInputs.lighting) state.config.lighting = baseInputs.lighting.default;
-      } else {
-        // Unknown format - try to parse as markdown-wrapped JSON one last time
-        if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
-          console.warn('Unknown format but has markdown, attempting final parse');
-          let configString = safeConfig;
-          configString = configString.replace(/\\n/g, '\n');
-          configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-          configString = configString.replace(/^\n+|\n+$/g, '');
-          try {
-            const parsed = JSON.parse(configString);
-            state.step3Config = parsed;
-            console.log("Final parse successful, retrying render");
-            return renderStep3Config();
-          } catch (e) {
-            console.error("Final parse failed:", e);
-          }
-        }
-        
-        // Unknown format - show error
-        console.error('Unknown config format:', safeConfig);
-        document.getElementById('step3-loader').style.display = 'none';
-        alert('Error: Unknown configuration format returned from backend');
-        return;
-      }
-      
-      // Hide loader, show content
-      document.getElementById('step3-loader').style.display = 'none';
-      document.getElementById('step3-content').style.display = 'block';
-    }
-    
-    function renderSingleSubjectConfig(subject) {
-      const baseInputs = subject.base_inputs;
-      if (!baseInputs) {
-        console.error('Missing base_inputs in subject:', subject);
-        return;
-      }
-      if (baseInputs.background) populateSelect('background-select', baseInputs.background);
-      if (baseInputs.surface) populateSelect('surface-select', baseInputs.surface);
-      if (baseInputs.arrangement) populateSelect('arrangement-select', baseInputs.arrangement);
-      if (baseInputs.camera) populateSelect('camera-select', baseInputs.camera);
-      if (baseInputs.lighting) populateSelect('lighting-select', baseInputs.lighting);
-      
-      if (baseInputs.background) state.config.background = baseInputs.background.default;
-      if (baseInputs.surface) state.config.surface = baseInputs.surface.default;
-      if (baseInputs.arrangement) state.config.arrangement = baseInputs.arrangement.default;
-      if (baseInputs.camera) state.config.camera = baseInputs.camera.default;
-      if (baseInputs.lighting) state.config.lighting = baseInputs.lighting.default;
-      
-      renderContextualInputs(subject.contextual_inputs);
-    }
-    
-    function renderMultiSubjectConfigs(subjects) {
-      const container = document.getElementById('multi-subject-configs');
-      container.innerHTML = '';
-      
-      subjects.forEach((subject, index) => {
-        const card = document.createElement('div');
-        card.className = 'card tab-content';
-        card.id = `subject-${index}`;
-        
-        card.innerHTML = `
-          <h3>${subject.name}</h3>
-          <p>Category: ${subject.category} | Material: ${subject.material}</p>
-          
-          <div class="config-section">
-            <h4>Background</h4>
-            <select id="background-${index}" class="config-select"></select>
-          </div>
-          
-          <div class="config-section">
-            <h4>Surface</h4>
-            <select id="surface-${index}" class="config-select"></select>
-          </div>
-          
-          <div class="config-section">
-            <h4>Arrangement</h4>
-            <select id="arrangement-${index}" class="config-select"></select>
-          </div>
-          
-          <div class="config-section">
-            <h4>Camera</h4>
-            <select id="camera-${index}" class="config-select"></select>
-          </div>
-          
-          <div class="config-section">
-            <h4>Lighting</h4>
-            <select id="lighting-${index}" class="config-select"></select>
-          </div>
-          
-          <div id="contextual-${index}"></div>
-        `;
-        
-        container.appendChild(card);
-        
-        const baseInputs = subject.base_inputs;
-        if (!baseInputs) {
-          console.error('Missing base_inputs in subject:', subject);
-          return;
-        }
-        if (baseInputs.background) populateSelect(`background-${index}`, baseInputs.background);
-        if (baseInputs.surface) populateSelect(`surface-${index}`, baseInputs.surface);
-        if (baseInputs.arrangement) populateSelect(`arrangement-${index}`, baseInputs.arrangement);
-        if (baseInputs.camera) populateSelect(`camera-${index}`, baseInputs.camera);
-        if (baseInputs.lighting) populateSelect(`lighting-${index}`, baseInputs.lighting);
-        
-        // Store per-subject config
-        state.subjectConfigs = state.subjectConfigs || {};
-        state.subjectConfigs[subject.name] = {
-          background: baseInputs.background?.default,
-          surface: baseInputs.surface?.default,
-          arrangement: baseInputs.arrangement?.default,
-          camera: baseInputs.camera?.default,
-          lighting: baseInputs.lighting?.default
-        };
-        
-        renderContextualInputs(subject.contextual_inputs, `contextual-${index}`);
-      });
-    }
-    
-    function renderContextualInputs(contextualInputs, containerId = 'contextual-inputs') {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      
-      if (contextualInputs && contextualInputs.length > 0) {
-        if (containerId === 'contextual-inputs') {
-          document.getElementById('contextual-section').style.display = 'block';
-        }
-        container.innerHTML = '';
-        
-        contextualInputs.forEach(input => {
-          const section = document.createElement('div');
-          section.className = 'config-section';
-          section.innerHTML = `
-            <h4>${input.label}</h4>
-            <select id="${input.key}-select" class="config-select" onchange="state.config['${input.key}'] = this.value"></select>
-          `;
-          container.appendChild(section);
-          
-          populateSelect(`${input.key}-select`, {
-            default: input.default,
-            alternatives: input.alternatives
-          });
-          
-          state.config[input.key] = input.default;
-        });
-      } else {
-        if (containerId === 'contextual-inputs') {
-          document.getElementById('contextual-section').style.display = 'none';
-        }
-      }
-    }
-    
-    function switchTab(index) {
-      // Update tab styles
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      
-      if (index === 'shared') {
-        document.querySelectorAll('.tab')[0].classList.add('active');
-      } else {
-        document.querySelectorAll('.tab')[index + 1].classList.add('active');
-      }
-      
-      // Show/hide content
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      if (index === 'shared') {
-        // Show shared section only
-      } else {
-        const content = document.getElementById(`subject-${index}`);
-        if (content) content.classList.add('active');
-      }
-    }
-    
-    function populateSelect(id, config) {
-      const select = document.getElementById(id);
-      if (!select) return;
-      
-      select.innerHTML = '';
-      
-      // Add default
-      const defaultOption = document.createElement('option');
-      defaultOption.value = config.default;
-      defaultOption.textContent = config.default;
-      if (config.derived) defaultOption.textContent += ' (AI-derived)';
-      select.appendChild(defaultOption);
-      
-      // Add alternatives
-      if (config.alternatives) {
-        config.alternatives.forEach(alt => {
-          const option = document.createElement('option');
-          option.value = alt;
-          option.textContent = alt;
-          select.appendChild(option);
-        });
-      }
-      
-      select.onchange = function() {
-        const key = id.replace('-select', '');
-        state.config[key] = this.value;
-      };
-    }
-    
-    // Step 4: Style & Toggles
+    // Step 4: Preset Selection
     function selectPreset(preset) {
       state.preset = preset;
       document.querySelectorAll('#step4 .option[data-preset]').forEach(el => {
         el.classList.remove('selected');
         if (el.dataset.preset === preset) el.classList.add('selected');
       });
+      updateFooter();
+    }
+    
+    // Step 4: Toggles
+    function toggleNoBranding() {
+      state.noBranding = !state.noBranding;
+      document.getElementById('no-branding-toggle').classList.toggle('on');
+    }
+    
+    function toggleMotionAccents() {
+      state.motionAccents = !state.motionAccents;
+      document.getElementById('motion-accents-toggle').classList.toggle('on');
+    }
+    
+    function toggleConsistencyMode() {
+      state.consistencyMode = !state.consistencyMode;
+      document.getElementById('consistency-toggle').classList.toggle('on');
+    }
+    
+    // Navigation
+    function goBack() {
+      if (state.currentStep > 1) {
+        goToStep(state.currentStep - 1);
+      }
+    }
+    
+    function goNext() {
+      if (state.currentStep < 5) {
+        goToStep(state.currentStep + 1);
+      }
+    }
+    
+    function goToStep(stepNumber) {
+      // Hide all steps
+      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
       
-      // Set branding default based on mode
-      if (state.mode === 'single' || state.mode === 'consistent') {
-        state.noBranding = false;
-        document.getElementById('no-branding-toggle').classList.remove('on');
-      } else {
-        state.noBranding = true;
-        document.getElementById('no-branding-toggle').classList.add('on');
+      // Show target step
+      document.getElementById(`step${stepNumber}`).classList.add('active');
+      
+      // Update current step
+      state.currentStep = stepNumber;
+      
+      // Update step indicator
+      document.getElementById('step-indicator').textContent = `STEP ${stepNumber} / 5`;
+      
+      // Step-specific initialization
+      if (stepNumber === 2) {
+        state.subjects = document.getElementById('subjects-input').value;
+      }
+      
+      if (stepNumber === 3) {
+        fetchStep3Config();
+      }
+      
+      if (stepNumber === 4) {
+        // Set branding default based on mode
+        if (state.mode === 'single' || state.mode === 'consistent') {
+          state.noBranding = false;
+          document.getElementById('no-branding-toggle').classList.remove('on');
+        } else {
+          state.noBranding = true;
+          document.getElementById('no-branding-toggle').classList.add('on');
+        }
+      }
+      
+      if (stepNumber === 5) {
+        updateConfigSummary();
       }
       
       updateFooter();
-    };
-    
-    window.toggleNoBranding = function() {
-      state.noBranding = !state.noBranding;
-      document.getElementById('no-branding-toggle').classList.toggle('on');
-    };
-    
-    window.toggleMotionAccents = function() {
-      state.motionAccents = !state.motionAccents;
-      document.getElementById('motion-accents-toggle').classList.toggle('on');
-    };
-    
-    window.toggleConsistencyMode = function() {
-      state.consistencyMode = !state.consistencyMode;
-      document.getElementById('consistency-toggle').classList.toggle('on');
-    };
-    
-    window.modifyConfig = function() {
-      // Jump back to Step 3, keeping cached config
-      goToStep(3);
-    };
-    
-    window.closeTask = function() {
-      // Close the plugin or reset to initial state
-      resetAll();
-    };
-    
-    window.showStep61 = function() {
-      document.getElementById('step6-menu').style.display = 'none';
-      document.getElementById('step61-menu').style.display = 'block';
-      document.getElementById('user-iteration-input').style.display = 'none';
-      document.getElementById('ai-suggestion-output').style.display = 'none';
-    };
-    
-    window.showUserIteration = function() {
-      document.getElementById('step61-menu').style.display = 'none';
-      document.getElementById('user-iteration-input').style.display = 'block';
-    };
-    
-    window.showAISuggestion = function() {
-      document.getElementById('step61-menu').style.display = 'none';
-      document.getElementById('ai-suggestion-output').style.display = 'block';
-      document.getElementById('ai-suggestion-text').textContent = 'Loading suggestion...';
-      
-      // Call backend with phase="ai_suggestion"
-      fetchAISuggestion();
-    };
-    
-    async function fetchAISuggestion(excludePrevious = false) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
-        
-        const response = await fetch(BACKEND_URL, {
-          signal: controller.signal,
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phase: 'ai_suggestion',
-            lockedConfig: state.config,
-            excludePrevious: excludePrevious
-          })
-        });
-        clearTimeout(timeoutId);
-        
-        const raw = await response.text();
-        let data;
-        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
-        
-        if (!response.ok) {
-          const msg = data.error || data.message || raw || response.statusText;
-          document.getElementById('ai-suggestion-text').textContent = 'Error: ' + msg;
-          return;
-        }
-        
-        document.getElementById('ai-suggestion-text').textContent = data.reply || data.suggestion || 'No suggestion available';
-      } catch (error) {
-        console.error('Failed to fetch AI suggestion:', error);
-        document.getElementById('ai-suggestion-text').textContent = 'Error: Failed to get suggestion';
-      }
     }
     
-    window.submitUserIteration = async function() {
-      const userRequest = document.getElementById('iteration-text').value;
-      if (!userRequest.trim()) {
-        alert('Please describe what you would like to change');
-        return;
+    // Update footer buttons
+    function updateFooter() {
+      const backBtn = document.getElementById('global-back');
+      const continueBtn = document.getElementById('global-continue');
+      
+      backBtn.disabled = state.currentStep === 1;
+      
+      // Enable continue based on step requirements
+      switch (state.currentStep) {
+        case 1:
+          continueBtn.disabled = !state.mode || (state.mode === 'variation' && !state.variationLevel);
+          break;
+        case 2:
+          continueBtn.disabled = !state.subjects.trim();
+          break;
+        case 3:
+          continueBtn.disabled = false;
+          break;
+        case 4:
+          continueBtn.disabled = false;
+          break;
+        case 5:
+          continueBtn.disabled = false;
+          continueBtn.textContent = 'Generate';
+          break;
       }
       
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
-        
-        const response = await fetch(BACKEND_URL, {
-          signal: controller.signal,
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phase: 'iterate_user',
-            lockedConfig: state.config,
-            userRequest: userRequest
-          })
-        });
-        clearTimeout(timeoutId);
-        
-        const raw = await response.text();
-        let data;
-        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
-        
-        if (!response.ok) {
-          const msg = data.error || data.message || raw || response.statusText;
-          alert('Backend error: ' + msg);
-          return;
-        }
-        
-        // Update result with new prompt
-        document.getElementById('result-text').textContent = data.reply || data.prompt;
-        
-        // Hide iteration UI, show step6 menu
-        document.getElementById('user-iteration-input').style.display = 'none';
-        document.getElementById('step6-menu').style.display = 'block';
-      } catch (error) {
-        console.error('Failed to iterate:', error);
-        alert('Error: Failed to apply changes');
+      if (state.currentStep < 5) {
+        continueBtn.textContent = 'Continue →';
       }
     }
     
-    window.applyAISuggestion = async function() {
+    // Step 3: Fetch Config
+    async function fetchStep3Config() {
+      document.getElementById('step3-loader').style.display = 'flex';
+      document.getElementById('step3-content').style.display = 'none';
+      
+      const step2Data = {
+        mode: state.mode,
+        variationLevel: state.variationLevel,
+        subjects: state.subjects,
+        productRef: state.productRef ? 'yes' : 'no',
+        sceneRef: state.sceneRef ? 'yes' : 'no'
+      };
+      
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
-        
         const response = await fetch(BACKEND_URL, {
-          signal: controller.signal,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            phase: 'iterate_ai',
-            lockedConfig: state.config,
-            suggestion: document.getElementById('ai-suggestion-text').textContent
+            phase: 'step3_config',
+            lockedConfig: step2Data
           })
         });
-        clearTimeout(timeoutId);
         
-        const raw = await response.text();
-        let data;
-        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+        const data = await response.json();
+        console.log("Backend response:", data);
         
-        if (!response.ok) {
-          const msg = data.error || data.message || raw || response.statusText;
-          alert('Backend error: ' + msg);
-          return;
+        // Parse response
+        let apiConfig = data;
+        if (data.reply) {
+          if (typeof data.reply === 'string') {
+            let replyString = data.reply;
+            // Strip markdown
+            replyString = replyString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+            replyString = replyString.replace(/\\n/g, '\n');
+            try {
+              apiConfig = JSON.parse(replyString);
+            } catch (e) {
+              console.error("Parse error:", e);
+            }
+          } else {
+            apiConfig = data.reply;
+          }
         }
         
-        // Update result with new prompt
-        document.getElementById('result-text').textContent = data.reply || data.prompt;
+        // Render config
+        if (apiConfig.inputs && Array.isArray(apiConfig.inputs)) {
+          renderStep3Config(apiConfig.inputs);
+        } else {
+          renderDefaultConfig();
+        }
         
-        // Hide AI suggestion UI, show step6 menu
-        document.getElementById('ai-suggestion-output').style.display = 'none';
-        document.getElementById('step6-menu').style.display = 'block';
       } catch (error) {
-        console.error('Failed to apply AI suggestion:', error);
-        alert('Error: Failed to apply suggestion');
+        console.error('Failed to fetch Step 3 config:', error);
+        renderDefaultConfig();
       }
     }
     
-    function renderConfigSummary() {
+    function renderStep3Config(inputs) {
+      const container = document.getElementById('single-subject-config');
+      container.innerHTML = '';
+      
+      inputs.forEach(input => {
+        const section = document.createElement('div');
+        section.className = 'config-section';
+        
+        const label = document.createElement('h4');
+        label.textContent = input.label;
+        section.appendChild(label);
+        
+        const select = document.createElement('select');
+        select.id = `config-${input.label.toLowerCase().replace(/\s+/g, '-')}`;
+        
+        // Add default as first option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = input.default;
+        defaultOption.textContent = input.default;
+        select.appendChild(defaultOption);
+        
+        // Add alternatives
+        if (input.alternatives && Array.isArray(input.alternatives)) {
+          input.alternatives.forEach(alt => {
+            const option = document.createElement('option');
+            option.value = alt;
+            option.textContent = alt;
+            select.appendChild(option);
+          });
+        }
+        
+        select.addEventListener('change', (e) => {
+          state.config[input.label.toLowerCase().replace(/\s+/g, '-')] = e.target.value;
+        });
+        
+        section.appendChild(select);
+        container.appendChild(section);
+        
+        // Store default in state
+        state.config[input.label.toLowerCase().replace(/\s+/g, '-')] = input.default;
+      });
+      
+      document.getElementById('step3-loader').style.display = 'none';
+      document.getElementById('step3-content').style.display = 'block';
+    }
+    
+    function renderDefaultConfig() {
+      const defaults = [
+        { label: 'Background', default: 'Clean studio backdrop' },
+        { label: 'Surface', default: 'Neutral matte surface' },
+        { label: 'Arrangement', default: 'Centered hero placement' },
+        { label: 'Camera', default: 'Eye-level angle' },
+        { label: 'Lighting', default: 'Soft diffused lighting' }
+      ];
+      
+      renderStep3Config(defaults);
+    }
+    
+    // Step 5: Update Summary
+    function updateConfigSummary() {
       const summary = document.getElementById('config-summary');
       summary.innerHTML = `
         <p><strong>Mode:</strong> ${state.mode}</p>
-        ${state.variationLevel ? `<p><strong>Variation:</strong> ${state.variationLevel}</p>` : ''}
         <p><strong>Subject:</strong> ${state.subjects}</p>
-        <p><strong>Product Ref:</strong> ${state.productRef ? 'Yes' : 'No'}</p>
-        <p><strong>Scene Ref:</strong> ${state.sceneRef ? 'Yes' : 'No'}</p>
         <p><strong>Preset:</strong> ${state.preset}</p>
         <p><strong>No Branding:</strong> ${state.noBranding ? 'On' : 'Off'}</p>
-        <p><strong>Motion Accents:</strong> ${state.motionAccents ? 'On' : 'Off'}</p>
-        <p><strong>Consistency Mode:</strong> ${state.consistencyMode ? 'On' : 'Off'}</p>
       `;
     }
     
-    window.generatePrompt = async function() {
+    // Generate Prompt
+    async function generatePrompt() {
       const continueBtn = document.getElementById('global-continue');
       continueBtn.disabled = true;
       continueBtn.textContent = 'Generating…';
       
-      // Update subjects from input
       state.subjects = document.getElementById('subjects-input').value;
       
+      console.log("Generating prompt with config:", state);
+      
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
-        
-        const lockedConfig = {
-          ...state.config,
-          mode: state.mode,
-          variationLevel: state.variationLevel,
-          subjects: state.subjects,
-          productRef: state.productRef,
-          sceneRef: state.sceneRef,
-          preset: state.preset,
-          noBranding: state.noBranding,
-          motionAccents: state.motionAccents,
-          consistencyMode: state.consistencyMode
-        };
-        
-        const payload = {
-          phase: 'final_prompt',
-          lockedConfig,
-          productImages: state.productImages,
-          sceneImages: state.sceneImages
-        };
-        
         const response = await fetch(BACKEND_URL, {
-          signal: controller.signal,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            phase: 'final_prompt',
+            lockedConfig: {
+              mode: state.mode,
+              variationLevel: state.variationLevel,
+              subjects: state.subjects,
+              productRef: state.productRef ? 'yes' : 'no',
+              sceneRef: state.sceneRef ? 'yes' : 'no',
+              preset: state.preset,
+              noBranding: state.noBranding,
+              motionAccents: state.motionAccents,
+              consistencyMode: state.consistencyMode,
+              config: state.config
+            }
+          })
         });
         
-        clearTimeout(timeoutId);
+        const data = await response.json();
+        console.log("Generate response:", data);
         
-        const raw = await response.text();
-        let data;
-        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+        let prompt = data.reply || data.prompt || data.result || 'No prompt generated';
         
-        if (!response.ok) {
-          const msg = data.error || data.message || raw || response.statusText;
-          alert("Backend " + response.status + ":\n\n" + msg);
-          console.error("Full error payload:", data);
-          return;
+        // Strip markdown if present
+        if (typeof prompt === 'string' && prompt.includes('```')) {
+          prompt = prompt.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+          prompt = prompt.replace(/\\n/g, '\n');
         }
         
-        // Strip "🎨 FINAL PROMPT" header from output
-        let promptText = data.reply || data.prompt;
-        promptText = promptText.replace(/^🎨?\s*FINAL PROMPT\s*\n+/, '');
+        console.log("Final prompt:", prompt);
         
-        document.getElementById('result-text').textContent = promptText;
+        document.getElementById('result-text').textContent = prompt;
         document.getElementById('result-section').style.display = 'block';
-        document.getElementById('step6-menu').style.display = 'block';
         
-        // Hide footer when showing results
-        updateFooter();
       } catch (error) {
         console.error('Failed to generate prompt:', error);
-        alert(`Backend error: ${error.message || 'Failed to generate prompt. Please try again.'}`);
-      } finally {
-        continueBtn.disabled = false;
-        continueBtn.textContent = 'Generate Prompt';
+        alert('Error: Failed to generate prompt - ' + error.message);
       }
+      
+      continueBtn.disabled = false;
+      continueBtn.textContent = 'Generate';
     }
     
-    function copyPrompt() {
-      const text = document.getElementById('result-text').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Prompt copied to clipboard!');
-      });
-    }
-    
-    window.resetAll = function() {
-      // Reset state
+    // Reset
+    function resetAll() {
       state.currentStep = 1;
       state.mode = null;
       state.variationLevel = null;
       state.subjects = '';
       state.productRef = false;
       state.sceneRef = false;
-      state.productImages = [];
-      state.sceneImages = [];
-      state.step3Config = null;
-      state.step3ConfigCached = false;
       state.preset = 'ikea-minimal';
       state.noBranding = false;
       state.motionAccents = false;
       state.consistencyMode = false;
-      state.config = {};
       
       // Reset UI
       document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
       document.querySelectorAll('.toggle-switch').forEach(el => el.classList.remove('on'));
       document.getElementById('subjects-input').value = '';
-      document.getElementById('step3-loader').style.display = 'flex';
-      document.getElementById('step3-content').style.display = 'none';
-      document.getElementById('result-section').style.display = 'none';
       document.getElementById('variation-section').style.display = 'none';
-      document.getElementById('product-upload-zone').style.display = 'none';
-      document.getElementById('scene-upload-zone').style.display = 'none';
-      document.getElementById('product-thumbnails').innerHTML = '';
-      document.getElementById('scene-thumbnails').innerHTML = '';
+      document.getElementById('result-section').style.display = 'none';
       
-      // Go to step 1
       goToStep(1);
     }
     
-    // Initialize footer on page load
+    // Attach event listeners
     document.addEventListener('DOMContentLoaded', () => {
+      // Mode options
+      document.querySelectorAll('#step1 .option[data-mode]').forEach(el => {
+        el.addEventListener('click', () => selectMode(el.dataset.mode));
+      });
+      
+      // Variation options
+      document.querySelectorAll('#step1 .option[data-level]').forEach(el => {
+        el.addEventListener('click', () => selectVariation(el.dataset.level));
+      });
+      
+      // Step 2 toggles
+      document.getElementById('product-ref-toggle-btn').addEventListener('click', toggleProductRef);
+      document.getElementById('scene-ref-toggle-btn').addEventListener('click', toggleSceneRef);
+      
+      // Step 4 presets
+      document.querySelectorAll('#step4 .option[data-preset]').forEach(el => {
+        el.addEventListener('click', () => selectPreset(el.dataset.preset));
+      });
+      
+      // Step 4 toggles
+      document.getElementById('no-branding-toggle-btn').addEventListener('click', toggleNoBranding);
+      document.getElementById('motion-accents-toggle-btn').addEventListener('click', toggleMotionAccents);
+      document.getElementById('consistency-toggle-btn').addEventListener('click', toggleConsistencyMode);
+      
+      // Navigation
+      document.getElementById('global-back').addEventListener('click', goBack);
+      document.getElementById('global-continue').addEventListener('click', goNext);
+      
+      // Step 5 buttons
+      document.getElementById('generate-prompt-btn').addEventListener('click', generatePrompt);
+      document.getElementById('reset-all-btn').addEventListener('click', resetAll);
+      
+      // Subjects input
+      document.getElementById('subjects-input').addEventListener('input', (e) => {
+        state.subjects = e.target.value;
+        updateFooter();
+      });
+      
+      // Initial footer update
       updateFooter();
-      updateStepIndicator();
-      setupDragAndDrop('product');
-      setupDragAndDrop('scene');
     });
   </script>
 </body>
