@@ -204,11 +204,21 @@
       display: flex;
       gap: 8px;
       margin-top: 16px;
-      position: sticky;
+      position: fixed;
       bottom: 0;
+      left: 0;
+      right: 0;
       background: #0d0d12;
-      padding: 16px 0;
+      padding: 16px;
+      border-top: 1px solid #2a2a35;
       z-index: 100;
+    }
+    
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 80px;
     }
     
     .loader {
@@ -336,10 +346,6 @@
             </div>
           </div>
         </div>
-        
-        <div class="nav-buttons">
-          <button class="button" id="step1-continue" disabled onclick="goToStep2()">Continue →</button>
-        </div>
       </div>
       
       <!-- Step 2: Subjects & References -->
@@ -347,7 +353,7 @@
         <div class="card">
           <h3>Describe Your Subject</h3>
           <p>What are you creating prompts for?</p>
-          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..." oninput="checkStep2Complete(); triggerPrefetch()"></textarea>
+          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..." oninput="updateFooter(); triggerPrefetch()"></textarea>
         </div>
         
         <div class="card">
@@ -361,11 +367,6 @@
             <span class="toggle-label">Scene Reference</span>
             <div class="toggle-switch" id="scene-ref-toggle"></div>
           </div>
-        </div>
-        
-        <div class="nav-buttons">
-          <button class="button button-secondary" onclick="goToStep1()">← Back</button>
-          <button class="button" id="step2-continue" disabled onclick="goToStep3()">Continue →</button>
         </div>
       </div>
       
@@ -412,11 +413,6 @@
             <p>Additional context based on your category</p>
             <div id="contextual-inputs"></div>
           </div>
-          
-          <div class="nav-buttons">
-            <button class="button button-secondary" onclick="goToStep2()">← Back</button>
-            <button class="button" onclick="goToStep4()">Continue →</button>
-          </div>
         </div>
       </div>
       
@@ -456,11 +452,6 @@
             <div class="toggle-switch on" id="quality-toggle"></div>
           </div>
         </div>
-        
-        <div class="nav-buttons">
-          <button class="button button-secondary" onclick="goToStep3()">← Back</button>
-          <button class="button" onclick="goToStep5()">Continue →</button>
-        </div>
       </div>
       
       <!-- Step 5: Confirmation & Generate -->
@@ -471,11 +462,6 @@
           <div id="config-summary"></div>
         </div>
         
-        <div class="nav-buttons">
-          <button class="button button-secondary" onclick="goToStep4()">← Back</button>
-          <button class="button" onclick="generatePrompt()">Generate Prompt</button>
-        </div>
-        
         <div id="result-section" style="display: none; margin-top: 16px;">
           <div class="card">
             <h3>Your Prompt</h3>
@@ -483,18 +469,25 @@
               <div id="result-text" class="result-text"></div>
             </div>
           </div>
-          <div class="nav-buttons">
+          <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
             <button class="button" onclick="copyPrompt()">Copy to Clipboard</button>
             <button class="button button-secondary" onclick="resetAll()">Start Over</button>
           </div>
         </div>
       </div>
     </div>
+    
+    <!-- Global Fixed Footer -->
+    <div class="nav-buttons">
+      <button class="button button-secondary" id="global-back" onclick="goBack()">← Back</button>
+      <button class="button" id="global-continue" onclick="goNext()">Continue →</button>
+    </div>
   </div>
   
   <script>
     // State
     const state = {
+      currentStep: 1,
       mode: null,
       variationLevel: null,
       subjects: '',
@@ -510,6 +503,105 @@
     
     const BACKEND_URL = 'https://backend-mocha-six-61.vercel.app/api/chat';
     
+    // Update footer state based on current step
+    function updateFooter() {
+      const backBtn = document.getElementById('global-back');
+      const continueBtn = document.getElementById('global-continue');
+      const footer = document.querySelector('.nav-buttons');
+      
+      // Hide footer on result screen
+      if (state.currentStep === 5 && document.getElementById('result-section').style.display === 'block') {
+        footer.style.display = 'none';
+        return;
+      } else {
+        footer.style.display = 'flex';
+      }
+      
+      // Update Back button state
+      if (state.currentStep === 1) {
+        backBtn.disabled = true;
+      } else {
+        backBtn.disabled = false;
+      }
+      
+      // Update Continue button text and state
+      if (state.currentStep === 5) {
+        continueBtn.textContent = 'Generate Prompt';
+      } else {
+        continueBtn.textContent = 'Continue →';
+      }
+      
+      // Update Continue button disabled state based on validation
+      updateContinueButtonState();
+    }
+    
+    function updateContinueButtonState() {
+      const continueBtn = document.getElementById('global-continue');
+      
+      switch (state.currentStep) {
+        case 1:
+          continueBtn.disabled = !state.mode || (state.mode === 'variation' && !state.variationLevel);
+          break;
+        case 2:
+          continueBtn.disabled = state.subjects.trim().length === 0;
+          break;
+        case 3:
+          continueBtn.disabled = !state.step3Config;
+          break;
+        case 4:
+          continueBtn.disabled = !state.preset;
+          break;
+        case 5:
+          continueBtn.disabled = false;
+          break;
+      }
+    }
+    
+    function goBack() {
+      if (state.currentStep > 1) {
+        goToStep(state.currentStep - 1);
+      }
+    }
+    
+    function goNext() {
+      if (state.currentStep === 5) {
+        generatePrompt();
+      } else {
+        goToStep(state.currentStep + 1);
+      }
+    }
+    
+    function goToStep(stepNumber) {
+      // Hide all steps
+      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+      
+      // Show target step
+      document.getElementById(`step${stepNumber}`).classList.add('active');
+      
+      // Update current step
+      state.currentStep = stepNumber;
+      
+      // Step-specific initialization
+      if (stepNumber === 3) {
+        if (!state.step3ConfigCached) {
+          fetchStep3Config();
+        } else {
+          renderStep3Config();
+        }
+      }
+      
+      if (stepNumber === 4) {
+        selectPreset('apple');
+      }
+      
+      if (stepNumber === 5) {
+        renderConfigSummary();
+      }
+      
+      // Update footer
+      updateFooter();
+    }
+    
     // Step 1: Mode Selection
     function selectMode(mode) {
       state.mode = mode;
@@ -522,7 +614,7 @@
       document.getElementById('variation-section').style.display = 
         mode === 'variation' ? 'block' : 'none';
       
-      checkStep1Complete();
+      updateFooter();
     }
     
     function selectVariation(level) {
@@ -531,40 +623,20 @@
         el.classList.remove('selected');
         if (el.dataset.level === level) el.classList.add('selected');
       });
-      checkStep1Complete();
-    }
-    
-    function checkStep1Complete() {
-      const complete = state.mode && (state.mode !== 'variation' || state.variationLevel);
-      document.getElementById('step1-continue').disabled = !complete;
-    }
-    
-    function goToStep2() {
-      document.getElementById('step1').classList.remove('active');
-      document.getElementById('step2').classList.add('active');
+      updateFooter();
     }
     
     // Step 2: Subjects & References
     function toggleProductRef() {
       state.productRef = !state.productRef;
       document.getElementById('product-ref-toggle').classList.toggle('on');
-      checkStep2Complete();
+      updateFooter();
     }
     
     function toggleSceneRef() {
       state.sceneRef = !state.sceneRef;
       document.getElementById('scene-ref-toggle').classList.toggle('on');
-      checkStep2Complete();
-    }
-    
-    function checkStep2Complete() {
-      const complete = state.subjects.trim().length > 0;
-      document.getElementById('step2-continue').disabled = !complete;
-    }
-    
-    function goToStep1() {
-      document.getElementById('step2').classList.remove('active');
-      document.getElementById('step1').classList.add('active');
+      updateFooter();
     }
     
     // Prefetch Step 3 config
@@ -713,23 +785,6 @@
       };
     }
     
-    async function goToStep3() {
-      document.getElementById('step2').classList.remove('active');
-      document.getElementById('step3').classList.add('active');
-      
-      // Fetch config if not already cached
-      if (!state.step3ConfigCached) {
-        await fetchStep3Config();
-      } else {
-        renderStep3Config();
-      }
-    }
-    
-    function goToStep2() {
-      document.getElementById('step3').classList.remove('active');
-      document.getElementById('step2').classList.add('active');
-    }
-    
     // Step 4: Style & Branding
     function selectPreset(preset) {
       state.preset = preset;
@@ -746,6 +801,8 @@
         state.branding = false;
         document.getElementById('branding-toggle').classList.remove('on');
       }
+      
+      updateFooter();
     }
     
     function toggleBranding() {
@@ -756,27 +813,6 @@
     function toggleQuality() {
       state.quality = !state.quality;
       document.getElementById('quality-toggle').classList.toggle('on');
-    }
-    
-    function goToStep4() {
-      document.getElementById('step3').classList.remove('active');
-      document.getElementById('step4').classList.add('active');
-      
-      // Select default preset
-      selectPreset('apple');
-    }
-    
-    function goToStep3() {
-      document.getElementById('step4').classList.remove('active');
-      document.getElementById('step3').classList.add('active');
-    }
-    
-    // Step 5: Confirmation & Generate
-    function goToStep5() {
-      document.getElementById('step4').classList.remove('active');
-      document.getElementById('step5').classList.add('active');
-      
-      renderConfigSummary();
     }
     
     function renderConfigSummary() {
@@ -793,9 +829,12 @@
     }
     
     async function generatePrompt() {
-      const button = document.querySelector('#step5 .button');
-      button.disabled = true;
-      button.textContent = 'Generating…';
+      const continueBtn = document.getElementById('global-continue');
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'Generating…';
+      
+      // Update subjects from input
+      state.subjects = document.getElementById('subjects-input').value;
       
       try {
         const controller = new AbortController();
@@ -835,12 +874,15 @@
         
         document.getElementById('result-text').textContent = data.prompt;
         document.getElementById('result-section').style.display = 'block';
+        
+        // Hide footer when showing results
+        updateFooter();
       } catch (error) {
         console.error('Failed to generate prompt:', error);
         alert('Failed to generate prompt. Please try again.');
       } finally {
-        button.disabled = false;
-        button.textContent = 'Generate Prompt';
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'Generate Prompt';
       }
     }
     
@@ -853,6 +895,7 @@
     
     function resetAll() {
       // Reset state
+      state.currentStep = 1;
       state.mode = null;
       state.variationLevel = null;
       state.subjects = '';
@@ -875,13 +918,14 @@
       document.getElementById('result-section').style.display = 'none';
       document.getElementById('variation-section').style.display = 'none';
       
-      checkStep1Complete();
-      checkStep2Complete();
-      
       // Go to step 1
-      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-      document.getElementById('step1').classList.add('active');
+      goToStep(1);
     }
+    
+    // Initialize footer on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateFooter();
+    });
   </script>
 </body>
 </html>
