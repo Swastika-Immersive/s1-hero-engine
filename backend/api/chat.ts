@@ -3,6 +3,8 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+export const config = { maxDuration: 60 };
+
 // Load system prompt at module load
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -85,8 +87,12 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json(parsed);
     }
   } catch (error: any) {
-    console.error('Error:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('ANTHROPIC ERROR:', error);
+    return res.status(500).json({
+      error: error?.message ?? 'Unknown error',
+      status: error?.status,
+      type: error?.error?.type
+    });
   }
 }
 
@@ -119,44 +125,53 @@ Inputs:
 
 Return ONLY the JSON, no markdown, no prose.`;
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    system: systemPrompt + '\n\nOutput strict JSON for the step3_config phase.',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  const assistantContent = response.content[0]?.text || '';
-
-  // Post-process: trim, strip JSON fences, parse
-  let cleaned = assistantContent.trim();
-  cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-  
-  const firstBrace = cleaned.indexOf('{');
-  const lastBrace = cleaned.lastIndexOf('}');
-  
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-  }
-
-  let parsed;
   try {
-    parsed = JSON.parse(cleaned);
-  } catch (parseError) {
-    parsed = {
-      category: "generic",
-      base_inputs: {
-        background: { default: "Clean studio", alternatives: ["Dark moody", "Bright airy"], derived: false },
-        surface: { default: "Matte surface", alternatives: ["Glossy", "Textured"], derived: false },
-        arrangement: { default: "Centered", alternatives: ["Dynamic angle", "Flat lay"], derived: false },
-        camera: { default: "45-degree angle", alternatives: ["Top-down", "Side view"], derived: false },
-        lighting: { default: "Soft diffused", alternatives: ["Dramatic side", "Natural window"], derived: false }
-      },
-      contextual_inputs: []
-    };
-  }
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      system: systemPrompt + '\n\nOutput strict JSON for the step3_config phase.',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-  return res.status(200).json(parsed);
+    const assistantContent = response.content[0]?.text || '';
+
+    // Post-process: trim, strip JSON fences, parse
+    let cleaned = assistantContent.trim();
+    cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseError) {
+      parsed = {
+        category: "generic",
+        base_inputs: {
+          background: { default: "Clean studio", alternatives: ["Dark moody", "Bright airy"], derived: false },
+          surface: { default: "Matte surface", alternatives: ["Glossy", "Textured"], derived: false },
+          arrangement: { default: "Centered", alternatives: ["Dynamic angle", "Flat lay"], derived: false },
+          camera: { default: "45-degree angle", alternatives: ["Top-down", "Side view"], derived: false },
+          lighting: { default: "Soft diffused", alternatives: ["Dramatic side", "Natural window"], derived: false }
+        },
+        contextual_inputs: []
+      };
+    }
+
+    return res.status(200).json(parsed);
+  } catch (error: any) {
+    console.error('ANTHROPIC ERROR in handleStep3Config:', error);
+    return res.status(500).json({
+      error: error?.message ?? 'Unknown error',
+      status: error?.status,
+      type: error?.error?.type
+    });
+  }
 }
 
 async function handleFinalPrompt(data: any, res: any) {
@@ -170,14 +185,23 @@ Scene Images: ${sceneImages ? sceneImages.length + ' images' : 'none'}
 
 Generate the complete prompt following STEP 5 of the SKILL.md specification.`;
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    system: systemPrompt,
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
-  });
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      system: systemPrompt,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-  const assistantContent = response.content[0]?.text || '';
+    const assistantContent = response.content[0]?.text || '';
 
-  return res.status(200).json({ prompt: assistantContent.trim() });
+    return res.status(200).json({ prompt: assistantContent.trim() });
+  } catch (error: any) {
+    console.error('ANTHROPIC ERROR in handleFinalPrompt:', error);
+    return res.status(500).json({
+      error: error?.message ?? 'Unknown error',
+      status: error?.status,
+      type: error?.error?.type
+    });
+  }
 }

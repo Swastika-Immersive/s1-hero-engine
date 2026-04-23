@@ -1,5 +1,10 @@
 {
   "version": 2,
   "buildCommand": "echo \"API only\"",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "functions": {
+    "api/chat.ts": {
+      "maxDuration": 60
+    }
+  }
 }
