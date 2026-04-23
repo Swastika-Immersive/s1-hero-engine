@@ -1418,15 +1418,30 @@
           if (typeof data.reply === 'string') {
             let replyString = data.reply;
             console.log("Original reply string:", replyString);
-            // Strip markdown code blocks - handle all variations
-            replyString = replyString.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+            
+            // AGGRESSIVE markdown stripping - handle all variations including escaped newlines
+            // First, replace escaped newlines with actual newlines
+            replyString = replyString.replace(/\\n/g, '\n');
+            // Then strip markdown code blocks
+            replyString = replyString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+            // Remove any remaining newlines at start/end
+            replyString = replyString.replace(/^\n+|\n+$/g, '');
             console.log("After markdown strip:", replyString);
+            
             try {
               apiConfig = JSON.parse(replyString);
               console.log("Parsed successfully:", apiConfig);
             } catch (e) {
               console.error("JSON parse error:", e);
-              apiConfig = replyString;
+              // If parse fails, try one more time with different regex
+              replyString = replyString.replace(/```/g, '').trim();
+              try {
+                apiConfig = JSON.parse(replyString);
+                console.log("Second parse attempt successful:", apiConfig);
+              } catch (e2) {
+                console.error("Second parse failed:", e2);
+                apiConfig = replyString;
+              }
             }
           } else {
             apiConfig = data.reply;
