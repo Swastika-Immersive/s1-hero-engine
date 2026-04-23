@@ -1028,6 +1028,22 @@
     function ensureConfigStructure(config) {
       const safeConfig = config || {};
       
+      // FIRST: Handle markdown-wrapped string before any other checks
+      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
+        console.warn('ensureConfigStructure: Config is string with markdown, parsing FIRST');
+        let configString = safeConfig;
+        configString = configString.replace(/\\n/g, '\n');
+        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+        configString = configString.replace(/^\n+|\n+$/g, '');
+        try {
+          const parsed = JSON.parse(configString);
+          console.log('ensureConfigStructure: Successfully parsed markdown string');
+          return ensureConfigStructure(parsed); // Recursively call with parsed object
+        } catch (e) {
+          console.error('ensureConfigStructure: Failed to parse markdown string:', e);
+        }
+      }
+      
       // If it's the new inputs array format, ensure each input has required structure
       if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
         return safeConfig;
@@ -1525,6 +1541,38 @@
       console.log("Config type:", typeof config);
       console.log("Config value:", config);
       
+      // IMMEDIATE MARKDOWN STRIPPING - handle string with markdown FIRST
+      if (config && typeof config === 'string' && config.includes('```')) {
+        console.warn('Config is string with markdown, stripping IMMEDIATELY');
+        let configString = config;
+        // Replace escaped newlines first
+        configString = configString.replace(/\\n/g, '\n');
+        // Strip markdown
+        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+        // Remove newlines at start/end
+        configString = configString.replace(/^\n+|\n+$/g, '');
+        try {
+          config = JSON.parse(configString);
+          state.step3Config = config;
+          console.log("Successfully parsed markdown string to JSON");
+        } catch (e) {
+          console.error('Failed to parse markdown string:', e);
+          // Use defaults if parsing fails
+          config = {
+            inputs: [
+              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+            ]
+          };
+          state.step3Config = config;
+        }
+      }
+      
       // AGGRESSIVE MARKDOWN CHECK - check if config contains markdown regardless of type
       if (config && (typeof config === 'string' || (typeof config === 'object' && JSON.stringify(config).includes('```')))) {
         console.warn('Config contains markdown, stripping AGGRESSIVELY');
@@ -1573,6 +1621,35 @@
       
       // Ensure config structure is complete before rendering
       const safeConfig = ensureConfigStructure(config);
+      
+      // FINAL DEFENSIVE CHECK: if still a string with markdown, strip and parse
+      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
+        console.warn('FINAL: safeConfig is still string with markdown, stripping');
+        let configString = safeConfig;
+        configString = configString.replace(/\\n/g, '\n');
+        configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+        configString = configString.replace(/^\n+|\n+$/g, '');
+        try {
+          const parsed = JSON.parse(configString);
+          state.step3Config = parsed;
+          console.log("FINAL: Successfully parsed to JSON");
+          return renderStep3Config(); // Retry with parsed config
+        } catch (e) {
+          console.error("FINAL: Parse failed, using defaults");
+          state.step3Config = {
+            inputs: [
+              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+            ]
+          };
+          return renderStep3Config(); // Retry with defaults
+        }
+      }
       
       // Check if response is in new simple inputs array format
       if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
@@ -1677,6 +1754,23 @@
         if (baseInputs.camera) state.config.camera = baseInputs.camera.default;
         if (baseInputs.lighting) state.config.lighting = baseInputs.lighting.default;
       } else {
+        // Unknown format - try to parse as markdown-wrapped JSON one last time
+        if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
+          console.warn('Unknown format but has markdown, attempting final parse');
+          let configString = safeConfig;
+          configString = configString.replace(/\\n/g, '\n');
+          configString = configString.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+          configString = configString.replace(/^\n+|\n+$/g, '');
+          try {
+            const parsed = JSON.parse(configString);
+            state.step3Config = parsed;
+            console.log("Final parse successful, retrying render");
+            return renderStep3Config();
+          } catch (e) {
+            console.error("Final parse failed:", e);
+          }
+        }
+        
         // Unknown format - show error
         console.error('Unknown config format:', safeConfig);
         document.getElementById('step3-loader').style.display = 'none';
