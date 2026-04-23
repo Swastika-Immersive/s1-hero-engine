@@ -93,6 +93,8 @@ export default async function handler(req: any, res: any) {
       userMessage = [
         `Phase: final_prompt`,
         ``,
+        `IMPORTANT: Return ONLY the final prompt as plain prose. Do not wrap in JSON. Do not include menus, options, or routing data. The last sentence of your response must be the Quality Seal verbatim: "Ensure strong subject-background separation, realistic shadows with natural grounding, clean composition with generous breathing space, ultra-realistic materials with accurate reflections, zero noise or clutter. Premium e-commerce, Apple and IKEA catalog quality, professional studio product photography."`,
+        ``,
         `RENDER per SKILL.md STEP 5.`,
         ``,
         `If mode=single:`,
@@ -149,6 +151,59 @@ export default async function handler(req: any, res: any) {
         ...(productImages || []).map((img: string) => ({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: stripBase64Prefix(img) } })),
         ...(sceneImages || []).map((img: string) => ({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: stripBase64Prefix(img) } })),
       ];
+    } else if (phase === 'ai_suggestion') {
+      const { lockedConfig, excludePrevious } = req.body;
+      userMessage = [
+        `Phase: ai_suggestion`,
+        ``,
+        `Analyze the current locked config and suggest a single meaningful improvement.`,
+        ``,
+        `Every regeneration must change at least one of: background, lighting, depth, camera angle, color palette, composition, scene/action.`,
+        ``,
+        `Suggest in this exact format:`,
+        `"I have a suggestion: We can try a [clear visual improvement] to enhance [specific outcome]. Can we try this?"`,
+        ``,
+        `Example: "I have a suggestion: We can try a darker background with stronger side lighting to improve contrast and make the product stand out more. Can we try this?"`,
+        ``,
+        `Locked Config:`,
+        ...Object.entries(lockedConfig || {}).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
+        ``,
+        excludePrevious ? `Exclude previous suggestion. Suggest a different angle.` : '',
+      ].join('\n');
+    } else if (phase === 'iterate_user') {
+      const { lockedConfig, userRequest } = req.body;
+      if (!userRequest) return res.status(400).json({ error: 'Missing userRequest' });
+      userMessage = [
+        `Phase: iterate_user`,
+        ``,
+        `User requested changes: ${userRequest}`,
+        ``,
+        `Interpret user intent even if vague. Map natural-language changes to system inputs: subject / background / lighting / camera / mood / scene / color / accents.`,
+        ``,
+        `Update only the relevant parts of the locked config. Keep remaining system consistent unless user implies otherwise.`,
+        ``,
+        `Every regeneration must change at least one of: background, lighting, depth, camera angle, color palette, composition, scene/action.`,
+        ``,
+        `Generate the updated prompt per SKILL.md STEP 5 format.`,
+        ``,
+        `Locked Config:`,
+        ...Object.entries(lockedConfig || {}).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
+      ].join('\n');
+    } else if (phase === 'iterate_ai') {
+      const { lockedConfig, suggestion } = req.body;
+      if (!suggestion) return res.status(400).json({ error: 'Missing suggestion' });
+      userMessage = [
+        `Phase: iterate_ai`,
+        ``,
+        `Apply this AI suggestion and regenerate: ${suggestion}`,
+        ``,
+        `Every regeneration must change at least one of: background, lighting, depth, camera angle, color palette, composition, scene/action.`,
+        ``,
+        `Generate the updated prompt per SKILL.md STEP 5 format.`,
+        ``,
+        `Locked Config:`,
+        ...Object.entries(lockedConfig || {}).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`),
+      ].join('\n');
     } else {
       return res.status(400).json({ error: `Unknown phase: ${phase}` });
     }
@@ -157,7 +212,7 @@ export default async function handler(req: any, res: any) {
       ? [...imageBlocks, { type: 'text', text: userMessage }]
       : userMessage;
 
-    const model = phase === 'final_prompt' ? 'claude-opus-4-6' : 'claude-sonnet-4-6';
+    const model = (phase === 'final_prompt' || phase === 'iterate_user' || phase === 'iterate_ai') ? 'claude-opus-4-6' : 'claude-sonnet-4-6';
     const maxTokens = phase === 'final_prompt' ? 4096 : 2048;
 
     const completion = await anthropic.messages.create({
