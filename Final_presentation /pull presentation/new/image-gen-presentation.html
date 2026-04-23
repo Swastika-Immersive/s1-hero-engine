@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Image Generation — From Prompt to Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Georgia&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #050508; font-family: 'Inter', system-ui, sans-serif; color: #fff; height: 100vh; overflow: hidden; }
+  * { box-sizing: border-box; }
+  #root { height: 100vh; }
+  button { font-family: inherit; }
+  .loading { display: flex; align-items: center; justify-content: center; height: 100vh; color: #9CA3AF; }
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">Loading…</div></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+// ===== COLORS =====
+const ACCENT = "#7C3AED", TEAL = "#14B8A6", GOLD = "#F59E0B", PINK = "#EC4899";
+const GREEN = "#10B981", BLUE = "#3B82F6", ORANGE = "#F97316";
+const OFF = "#E5E7EB", MUTED = "#9CA3AF", CARD = "#111827", BG = "#0A0A12";
+
+// ===== SLIDE DIMENSIONS (fixed) =====
+const SLIDE_W = 1600;
+const SLIDE_H = 900;
+
+// ===== SCALE-TO-FIT WRAPPER =====
+function ScaleToFit({ children }) {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight - 88; // minus top + bottom bars
+      setScale(Math.min(w / SLIDE_W, h / SLIDE_H));
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden", background: "#050508" }}>
+      <div style={{ width: SLIDE_W, height: SLIDE_H, transform: `scale(${scale})`, transformOrigin: "center center", flexShrink: 0, position: "relative" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ===== REUSABLE =====
+function Tag({ text, color = ACCENT, size = 16 }) {
+  return (
+    <span style={{
+      background: color + "22", border: `1px solid ${color}55`, color,
+      fontSize: size, fontWeight: 800, letterSpacing: 3,
+      padding: "8px 18px", borderRadius: 26, textTransform: "uppercase",
+      display: "inline-block",
+    }}>{text}</span>
+  );
+}
+
+function slideBase(bg = BG) {
+  return {
+    width: SLIDE_W, height: SLIDE_H, background: bg,
+    position: "relative", overflow: "hidden",
+    padding: "70px 100px", display: "flex", flexDirection: "column",
+  };
+}
+
+function SideBar({ color = ACCENT }) {
+  return <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 8, background: `linear-gradient(180deg, ${color}, ${color}44)` }} />;
+}
+function CornerGlow({ color = ACCENT }) {
+  return <div style={{ position: "absolute", right: -220, top: -220, width: 800, height: 800, borderRadius: "50%", background: `radial-gradient(circle, ${color}15 0%, transparent 65%)`, pointerEvents: "none" }} />;
+}
+
+function H1({ children, color = "#fff", size = 96 }) {
+  return <div style={{ fontFamily: "Georgia, serif", fontSize: size, fontWeight: 700, color, lineHeight: 1.02, margin: "0 0 20px" }}>{children}</div>;
+}
+function H2({ children, color = MUTED, size = 28 }) {
+  return <div style={{ color, fontSize: size, lineHeight: 1.5, marginBottom: 44, maxWidth: 1200 }}>{children}</div>;
+}
+
+// ============ SLIDE 1: COVER ============
+function SlideCover() {
+  return (
+    <div style={slideBase(BG)}>
+      <div style={{ position: "absolute", right: -200, top: -200, width: 900, height: 900, borderRadius: "50%", background: `radial-gradient(circle, ${ACCENT}25 0%, transparent 60%)`, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", left: -150, bottom: -150, width: 700, height: 700, borderRadius: "50%", background: `radial-gradient(circle, ${TEAL}20 0%, transparent 60%)`, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 10, background: `linear-gradient(180deg, ${ACCENT}, ${TEAL})` }} />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "center", height: "100%" }}>
+        <Tag text="A Talk · 21 slides · ~25 min" color={ACCENT} size={18} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 160, fontWeight: 700, lineHeight: 0.98, color: "#fff", margin: "30px 0 0" }}>
+          Image Generation.
+        </div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 160, fontWeight: 700, lineHeight: 0.98, color: ACCENT, marginBottom: 40 }}>
+          From Prompt to Production.
+        </div>
+        <div style={{ color: OFF, fontSize: 32, maxWidth: 1100, lineHeight: 1.5, marginBottom: 50 }}>
+          Not the "type a prompt, get a meh result" kind.<br/>
+          The <span style={{ color: TEAL, fontWeight: 600 }}>"I can't believe this shipped in 10 minutes"</span> kind.
+        </div>
+        <div style={{ display: "flex", gap: 20 }}>
+          {["Claude × Skills", "Weavy × 3D Mindset", "S1 × Production"].map((t, i) => (
+            <span key={t} style={{
+              background: [ACCENT, TEAL, GOLD][i] + "18", border: `1.5px solid ${[ACCENT, TEAL, GOLD][i]}55`,
+              color: [ACCENT, TEAL, GOLD][i], padding: "14px 28px", borderRadius: 30,
+              fontSize: 20, fontWeight: 600,
+            }}>{t}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 2: MOM VS DAD INTRO ============
+function SlideMomDadIntro() {
+  return (
+    <div style={{ ...slideBase(BG), alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <SideBar color={PINK} />
+      <CornerGlow color={PINK} />
+      <div style={{ position: "relative", zIndex: 1, margin: "auto" }}>
+        <Tag text="Round 1 · The Parents" color={PINK} size={18} />
+        <H1 size={130}>ChatGPT or Claude?</H1>
+        <div style={{ color: MUTED, fontSize: 32, maxWidth: 1000, margin: "0 auto 60px", lineHeight: 1.5 }}>
+          Both are brilliant. But they parent you very differently.
+        </div>
+        <div style={{ display: "flex", gap: 80, alignItems: "center", justifyContent: "center", marginTop: 30 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 260 }}>👩</div>
+            <div style={{ fontSize: 38, fontWeight: 800, color: PINK, marginTop: 10 }}>ChatGPT</div>
+          </div>
+          <div style={{ fontSize: 80, color: MUTED, fontWeight: 300 }}>vs</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 260 }}>👨</div>
+            <div style={{ fontSize: 38, fontWeight: 800, color: ACCENT, marginTop: 10 }}>Claude</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 3: MOM VS DAD COMPARE ============
+function SlideMomDadCompare() {
+  const bubble = (text, col) => (
+    <div style={{
+      background: col + "18", border: `1.5px solid ${col}44`,
+      borderRadius: 24, padding: "22px 26px", marginBottom: 16,
+      fontSize: 22, color: OFF, lineHeight: 1.5,
+    }}>{text}</div>
+  );
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={PINK} />
+      <CornerGlow color={PINK} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="The Difference" color={PINK} size={18} />
+        <H1 size={96}>Think of them like <span style={{color:PINK}}>parents</span>.</H1>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 50, marginTop: 20 }}>
+          <div style={{ background: "#1A0F1F", borderRadius: 24, padding: 44, border: `2px solid ${PINK}33` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28 }}>
+              <div style={{ fontSize: 80 }}>👩</div>
+              <div>
+                <div style={{ fontSize: 40, fontWeight: 800, color: PINK }}>ChatGPT = Mom</div>
+                <div style={{ fontSize: 20, color: MUTED, marginTop: 4 }}>Warm. Encouraging. Optional.</div>
+              </div>
+            </div>
+            {bubble("Here are 5 options to consider, feel free to mix and match...", PINK)}
+            {bubble("Would you like me to explore another direction?", PINK)}
+            {bubble("You know best! Trust yourself 💕", PINK)}
+            <div style={{ marginTop: 26, fontSize: 20, color: MUTED, fontStyle: "italic" }}>
+              → Great for: brainstorming, exploring, feeling supported.
+            </div>
+          </div>
+          <div style={{ background: "#0F0F1F", borderRadius: 24, padding: 44, border: `2px solid ${ACCENT}33` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 28 }}>
+              <div style={{ fontSize: 80 }}>👨</div>
+              <div>
+                <div style={{ fontSize: 40, fontWeight: 800, color: ACCENT }}>Claude = Dad</div>
+                <div style={{ fontSize: 20, color: MUTED, marginTop: 4 }}>Sharp. Decisive. Honest.</div>
+              </div>
+            </div>
+            {bubble("Do this. It's the right call.", ACCENT)}
+            {bubble("That idea won't work. Here's why.", ACCENT)}
+            {bubble("Ship this version. It's ready.", ACCENT)}
+            <div style={{ marginTop: 26, fontSize: 20, color: MUTED, fontStyle: "italic" }}>
+              → Great for: deciding, shipping, trusting the call.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 4: LIVE DEMO ============
+function SlideLiveDemo() {
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={PINK} />
+      <CornerGlow color={PINK} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Live Demo" color={PINK} size={18} />
+        <H1 size={88}>Same prompt. Two brains.</H1>
+
+        <div style={{ background: CARD, borderRadius: 18, padding: "26px 38px", border: `2px dashed ${MUTED}55`, marginBottom: 36, maxWidth: 1200 }}>
+          <div style={{ fontSize: 16, color: MUTED, letterSpacing: 3, fontWeight: 800, marginBottom: 12 }}>PROMPT</div>
+          <div style={{ fontSize: 28, color: OFF, fontStyle: "italic" }}>
+            "Write a one-line tagline for a premium cookware brand."
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
+          <div style={{ background: "#1A0F1F", borderRadius: 18, padding: "38px 42px", borderTop: `6px solid ${PINK}` }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: PINK, marginBottom: 22, letterSpacing: 1.5 }}>👩 CHATGPT SAID:</div>
+            <div style={{ fontSize: 22, color: OFF, lineHeight: 1.8 }}>
+              Here are 5 options to try:<br/>
+              <span style={{ color: MUTED }}>1. "Cook with passion"<br/>
+              2. "Where meals become memories"<br/>
+              3. "Crafted for your kitchen"<br/>
+              4. "The art of cooking, perfected"<br/>
+              5. "Elevate every meal"</span><br/><br/>
+              Let me know if you'd like more! 😊
+            </div>
+          </div>
+          <div style={{ background: "#0F0F1F", borderRadius: 18, padding: "38px 42px", borderTop: `6px solid ${ACCENT}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: ACCENT, marginBottom: 22, letterSpacing: 1.5 }}>👨 CLAUDE SAID:</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 68, color: "#fff", fontWeight: 700, lineHeight: 1.15 }}>
+              "Cook like you mean it."
+            </div>
+            <div style={{ marginTop: 30, fontSize: 22, color: GREEN, fontWeight: 700 }}>
+              ✓ Done. Ship it.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 5: WHAT IS A SKILL ============
+function SlideWhatIsSkill() {
+  return (
+    <div style={{ ...slideBase(BG), alignItems: "center", textAlign: "center" }}>
+      <SideBar color={GOLD} />
+      <CornerGlow color={GOLD} />
+      <div style={{ position: "relative", zIndex: 1, margin: "auto" }}>
+        <Tag text="Round 2 · Skills" color={GOLD} size={18} />
+        <H1 size={110}>What even is a <span style={{color:GOLD}}>"Skill"</span>?</H1>
+        <div style={{ color: MUTED, fontSize: 28, maxWidth: 900, margin: "0 auto 30px", lineHeight: 1.5 }}>
+          The easiest way to think about it:
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 50, margin: "40px 0" }}>
+          <div style={{ fontSize: 220 }}>📖</div>
+          <div style={{ fontSize: 80, color: GOLD, fontWeight: 300 }}>=</div>
+          <div>
+            <div style={{ fontSize: 68, fontWeight: 800, color: GOLD, fontFamily: "Georgia, serif" }}>A recipe book</div>
+            <div style={{ fontSize: 28, color: MUTED, marginTop: 10 }}>you hand to Claude.</div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 1100, margin: "30px auto 0", background: CARD, borderRadius: 20, padding: "32px 48px", borderLeft: `6px solid ${GOLD}`, textAlign: "left" }}>
+          <div style={{ fontSize: 24, color: OFF, lineHeight: 1.7 }}>
+            Cook a 5-min Maggi masterpiece every week? <span style={{ color: GOLD, fontWeight: 700 }}>That's a skill.</span><br/>
+            The one people ask before hard conversations? <span style={{ color: GOLD, fontWeight: 700 }}>That's a skill.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 6: SKILL EXAMPLES ============
+function SlideSkillExamples() {
+  const skills = [
+    { icon: "🍜", name: "5-Min Recipes", desc: "When I'm starving, give me something real.", col: GOLD },
+    { icon: "💬", name: "Difficult Convo Coach", desc: "Drafts tough Slack messages with empathy.", col: PINK },
+    { icon: "📅", name: "Monday Planner", desc: "Reviews calendar + inbox, writes your week.", col: TEAL },
+    { icon: "🎨", name: "Design Review", desc: "Pastes critique like a senior designer.", col: ACCENT },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={GOLD} />
+      <CornerGlow color={GOLD} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Real Skills, Real People" color={GOLD} size={18} />
+        <H1 size={84}>You already have 10 skills <span style={{color:GOLD}}>in your head.</span></H1>
+        <H2 size={26}>Start writing. Here's what others built in 30 minutes:</H2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
+          {skills.map(s => (
+            <div key={s.name} style={{ background: CARD, borderRadius: 18, padding: "34px 38px", borderLeft: `6px solid ${s.col}`, display: "flex", gap: 26, alignItems: "center" }}>
+              <div style={{ fontSize: 80 }}>{s.icon}</div>
+              <div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: s.col, marginBottom: 8 }}>{s.name}</div>
+                <div style={{ fontSize: 20, color: OFF, lineHeight: 1.5 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 36, textAlign: "center", fontSize: 24, color: MUTED, fontStyle: "italic" }}>
+          → What's the thing <span style={{color:GOLD, fontWeight:800}}>you</span> do that others ask for help with?
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 7: AUTOMATIONS TIMELINE ============
+function SlideAutomations() {
+  const events = [
+    { time: "7:00", icon: "📰", title: "Morning News", desc: "Top 3 stories + weather, in your inbox.", col: ACCENT },
+    { time: "9:30", icon: "📧", title: "Gmail Drafts", desc: "Auto-drafts replies to client emails.", col: TEAL },
+    { time: "14:00", icon: "📅", title: "Calendar Magic", desc: `"Book 30 min with Rahul next week."`, col: GOLD },
+    { time: "17:00", icon: "💬", title: "Slack Digest", desc: "Summary of every channel you missed.", col: PINK },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={TEAL} />
+      <CornerGlow color={TEAL} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Claude · Every Day" color={TEAL} size={18} />
+        <H1 size={84}>Set it once. <span style={{color:TEAL}}>Forget it forever.</span></H1>
+        <H2 size={26}>These are running in the background. Right now. For someone, somewhere:</H2>
+
+        <div style={{ position: "relative", paddingLeft: 0, marginTop: 20 }}>
+          <div style={{ position: "absolute", left: 90, top: 30, bottom: 30, width: 4, background: `linear-gradient(180deg, ${ACCENT}, ${TEAL}, ${GOLD}, ${PINK})` }} />
+          {events.map(e => (
+            <div key={e.time} style={{ display: "flex", alignItems: "center", gap: 36, marginBottom: 30, position: "relative" }}>
+              <div style={{ width: 130, textAlign: "center", fontSize: 36, fontWeight: 800, color: e.col, fontFamily: "Georgia, serif", zIndex: 1 }}>
+                {e.time}
+              </div>
+              <div style={{ width: 26, height: 26, borderRadius: "50%", background: e.col, border: `5px solid ${BG}`, flexShrink: 0, zIndex: 2, boxShadow: `0 0 0 5px ${e.col}55` }} />
+              <div style={{ flex: 1, background: CARD, borderRadius: 18, padding: "24px 34px", borderLeft: `5px solid ${e.col}`, display: "flex", gap: 26, alignItems: "center" }}>
+                <div style={{ fontSize: 60 }}>{e.icon}</div>
+                <div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>{e.title}</div>
+                  <div style={{ fontSize: 20, color: MUTED, marginTop: 4 }}>{e.desc}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 8: COOK + KITCHEN + MESSENGER ============
+function SlideBackstage() {
+  const roles = [
+    { icon: "🧑‍🍳", name: "The Cook", tool: "Anthropic API", desc: "Claude's brain. Thinks. Writes. Decides.", col: ACCENT },
+    { icon: "🏠", name: "The Kitchen", tool: "Vercel", desc: "Where the cook works. Hosts everything.", col: TEAL },
+    { icon: "🛵", name: "The Messenger", tool: "Zapier", desc: "Runs between apps. Carries orders + deliveries.", col: GOLD },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={ACCENT} />
+      <CornerGlow color={ACCENT} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Behind the Curtain" color={ACCENT} size={18} />
+        <H1 size={84}>How does Claude <span style={{color:ACCENT}}>actually</span> do stuff?</H1>
+        <H2 size={26}>Three characters backstage. Each does one thing brilliantly.</H2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 30, marginTop: 20 }}>
+          {roles.map(r => (
+            <div key={r.name} style={{ background: CARD, borderRadius: 24, padding: "42px 30px", borderTop: `6px solid ${r.col}`, textAlign: "center" }}>
+              <div style={{ fontSize: 140, marginBottom: 22 }}>{r.icon}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: r.col, marginBottom: 8 }}>{r.name}</div>
+              <div style={{ fontSize: 18, color: MUTED, fontFamily: "monospace", marginBottom: 18, letterSpacing: 1 }}>= {r.tool}</div>
+              <div style={{ fontSize: 22, color: OFF, lineHeight: 1.5 }}>{r.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", marginTop: 40, fontSize: 24, color: MUTED, fontStyle: "italic" }}>
+          The cook makes a dish. The kitchen serves it. The messenger delivers it.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 9: MY STORY ============
+function SlideMyStory() {
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={ACCENT} />
+      <CornerGlow color={ACCENT} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Rule of Thumb" color={ACCENT} size={18} />
+        <H1 size={84}>When do you need <span style={{color:ACCENT}}>what</span>?</H1>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, marginTop: 20 }}>
+          <div style={{ background: CARD, borderRadius: 20, padding: "38px 42px", borderTop: `6px solid ${ACCENT}` }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: ACCENT, letterSpacing: 2.5, marginBottom: 14 }}>CASE 1 · BUILDING MY S1 PLUGIN</div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24 }}>I needed: <span style={{color:ACCENT}}>Cook + Kitchen</span></div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
+              <span style={{ background: ACCENT + "22", color: ACCENT, padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700 }}>🧑‍🍳 API</span>
+              <span style={{ background: TEAL + "22", color: TEAL, padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700 }}>🏠 Vercel</span>
+              <span style={{ background: "#2a2a3e", color: "#444", padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700, textDecoration: "line-through" }}>🛵 Zapier</span>
+            </div>
+            <div style={{ fontSize: 22, color: OFF, lineHeight: 1.6 }}>
+              Figma plugin talks to my Vercel backend. Vercel calls the API. <br/>No messenger — everything's custom.
+            </div>
+          </div>
+          <div style={{ background: CARD, borderRadius: 20, padding: "38px 42px", borderTop: `6px solid ${GOLD}` }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: GOLD, letterSpacing: 2.5, marginBottom: 14 }}>CASE 2 · CONNECTING MY GMAIL</div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", marginBottom: 24 }}>I needed: <span style={{color:GOLD}}>The Messenger</span></div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
+              <span style={{ background: GOLD + "22", color: GOLD, padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700 }}>🛵 Zapier</span>
+              <span style={{ background: "#2a2a3e", color: "#444", padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700, textDecoration: "line-through" }}>🧑‍🍳 API</span>
+              <span style={{ background: "#2a2a3e", color: "#444", padding: "10px 20px", borderRadius: 22, fontSize: 20, fontWeight: 700, textDecoration: "line-through" }}>🏠 Vercel</span>
+            </div>
+            <div style={{ fontSize: 22, color: OFF, lineHeight: 1.6 }}>
+              Gmail won't pick up Claude's calls directly. <br/>Zapier listens → sends → ships. Ready-made pipe.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 36, background: GREEN + "15", border: `2px solid ${GREEN}44`, borderRadius: 18, padding: "22px 34px" }}>
+          <span style={{ color: GREEN, fontWeight: 900, fontSize: 22, letterSpacing: 2 }}>THE RULE: </span>
+          <span style={{ color: OFF, fontSize: 22 }}>Building something custom? <b>Cook + Kitchen.</b> Connecting apps that exist? <b>Add the Messenger.</b></span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 10: WEAVY TRANSITION ============
+function SlideWeavyTransition() {
+  return (
+    <div style={{ ...slideBase("#050810"), alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 1200, height: 1200, borderRadius: "50%", background: `radial-gradient(circle, ${GREEN}18 0%, transparent 55%)`, pointerEvents: "none" }} />
+      <div style={{ position: "relative", zIndex: 1, margin: "auto" }}>
+        <Tag text="Act Two" color={GREEN} size={20} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 200, fontWeight: 700, color: "#fff", margin: "40px 0 20px", lineHeight: 1 }}>
+          Now — <span style={{ color: GREEN }}>Weavy.</span>
+        </div>
+        <div style={{ fontSize: 36, color: MUTED, maxWidth: 1100, margin: "0 auto", lineHeight: 1.4 }}>
+          Before we touch Weavy, one secret that changes how you talk to AI.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 11: ROLE PLAY ============
+function SlideRolePlay() {
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={GREEN} />
+      <CornerGlow color={GREEN} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="The Cheat Code" color={GREEN} size={18} />
+        <H1 size={96}>Role-play. <span style={{color:GREEN}}>Seriously.</span></H1>
+        <H2 size={28}>Same AI. Same task. 10× the output. Zero extra work.</H2>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
+          <div style={{ background: "#1A1515", borderRadius: 20, padding: "38px 42px", border: "2px solid #333" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: MUTED, letterSpacing: 2, marginBottom: 18 }}>❌ WITHOUT ROLE-PLAY</div>
+            <div style={{ fontSize: 26, color: "#888", fontStyle: "italic", lineHeight: 1.5, marginBottom: 28 }}>
+              "Write me a prompt for a hero shot of a kadai."
+            </div>
+            <div style={{ padding: "18px 24px", background: "#111", borderRadius: 12, border: "2px dashed #333", fontSize: 20, color: "#666", lineHeight: 1.5 }}>
+              Generic. Flat. Catalog-like. <br/>Could be anything. Forgettable.
+            </div>
+          </div>
+          <div style={{ background: "#0F1A0F", borderRadius: 20, padding: "38px 42px", border: `2px solid ${GREEN}55` }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: GREEN, letterSpacing: 2, marginBottom: 18 }}>✅ WITH ROLE-PLAY</div>
+            <div style={{ fontSize: 22, color: OFF, fontStyle: "italic", lineHeight: 1.5, marginBottom: 28 }}>
+              "Act as a 3D animator with <b style={{color:GREEN}}>25 years of experience</b> rendering product shots for Apple and IKEA catalogs…"
+            </div>
+            <div style={{ padding: "18px 24px", background: "#0D1F14", borderRadius: 12, border: `2px solid ${GREEN}55`, fontSize: 20, color: OFF, lineHeight: 1.5 }}>
+              <b style={{color:GREEN, fontSize:24}}>Masterclass.</b> <br/>Light, material, depth. Ready for print.
+            </div>
+          </div>
+        </div>
+        <div style={{ marginTop: 36, background: CARD, borderRadius: 16, padding: "26px 38px", borderLeft: `5px solid ${GREEN}` }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: GREEN, letterSpacing: 2, marginBottom: 14 }}>THE FORMULA</div>
+          <div style={{ display: "flex", gap: 40, flexWrap: "wrap", fontSize: 22 }}>
+            <div><span style={{color:GREEN, fontWeight:800}}>Who?</span> <span style={{color:OFF}}>25-yr 3D animator</span></div>
+            <div><span style={{color:GREEN, fontWeight:800}}>Where?</span> <span style={{color:OFF}}>Apple × IKEA campaigns</span></div>
+            <div><span style={{color:GREEN, fontWeight:800}}>How?</span> <span style={{color:OFF}}>Obsess over light + material</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 12: 3D MINDSET ============
+function Slide3DMindset() {
+  const items = [
+    { icon: "💡", name: "Lighting", col: GOLD },
+    { icon: "📷", name: "Camera Angle", col: TEAL },
+    { icon: "🌑", name: "Shadows", col: ACCENT },
+    { icon: "🪙", name: "Material", col: PINK },
+    { icon: "🌫️", name: "Depth", col: GREEN },
+    { icon: "💎", name: "Render Quality", col: BLUE },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={GREEN} />
+      <CornerGlow color={GREEN} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="The 3D Designer's Brain" color={GREEN} size={18} />
+        <H1 size={88}>A good render isn't <span style={{color:GREEN}}>one</span> thing. It's six.</H1>
+        <H2 size={26}>This is what's running through a 3D animator's head the second they see a product.</H2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 26 }}>
+          {items.map((it, i) => (
+            <div key={it.name} style={{
+              background: CARD, borderRadius: 22, padding: "40px 24px",
+              border: `2px solid ${it.col}33`, textAlign: "center",
+              borderTop: `6px solid ${it.col}`,
+            }}>
+              <div style={{ fontSize: 96, marginBottom: 18 }}>{it.icon}</div>
+              <div style={{ fontSize: 34, fontWeight: 900, color: it.col, marginBottom: 10 }}>{it.name}</div>
+              <div style={{ fontSize: 15, color: MUTED, letterSpacing: 3, fontWeight: 700 }}>CONSIDERATION {i+1}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 36, textAlign: "center", fontSize: 24, color: MUTED }}>
+          Miss one → amateur. Nail all six → <b style={{color:"#fff"}}>catalog-grade.</b>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 13: LIGHTING ============
+function SlideLighting() {
+  const lights = [
+    { name: "Soft Diffused", vibe: "Premium · Calm", ex: "IKEA catalog", grad: `radial-gradient(ellipse at 50% 30%, #fffbe8 0%, #c9b98a 40%, #5a4a2f 100%)`, col: GOLD },
+    { name: "Hard Spotlight", vibe: "Dramatic · Bold", ex: "Apple launch", grad: `radial-gradient(circle at 50% 20%, #ffffff 0%, #3b3b3b 35%, #0a0a0a 100%)`, col: "#fff" },
+    { name: "Golden Hour", vibe: "Warm · Editorial", ex: "Lifestyle ad", grad: `linear-gradient(135deg, #ff9d5c 0%, #d76b3e 50%, #3a1a0a 100%)`, col: ORANGE },
+    { name: "Rim Light", vibe: "Sharp · Luxury", ex: "High-end brand", grad: `radial-gradient(circle at 80% 50%, #00d4ff33 0%, transparent 40%), linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%)`, col: BLUE },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={GOLD} />
+      <CornerGlow color={GOLD} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Lighting · The Soul of a Render" color={GOLD} size={18} />
+        <H1 size={80}><span style={{color:GOLD}}>Product pic</span> vs <span style={{color:"#fff"}}>ad campaign</span> — it's the light.</H1>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 22, marginTop: 20 }}>
+          {lights.map(l => (
+            <div key={l.name} style={{ background: CARD, borderRadius: 18, overflow: "hidden", border: `2px solid ${l.col}33` }}>
+              <div style={{ height: 280, background: l.grad, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <div style={{ width: 110, height: 110, borderRadius: "50%", background: "rgba(0,0,0,0.5)", border: "3px solid rgba(255,255,255,0.3)" }} />
+              </div>
+              <div style={{ padding: "22px 24px" }}>
+                <div style={{ fontSize: 26, fontWeight: 800, color: l.col, marginBottom: 8 }}>{l.name}</div>
+                <div style={{ fontSize: 18, color: MUTED, marginBottom: 10 }}>{l.vibe}</div>
+                <div style={{ fontSize: 16, color: OFF, fontStyle: "italic" }}>→ {l.ex}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 34, fontSize: 22, color: MUTED, textAlign: "center", fontStyle: "italic" }}>
+          Same kettle. Four lighting choices. Four completely different products.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 14: CAMERA ============
+function SlideCamera() {
+  const angles = [
+    { name: "Front Hero", vibe: "Respect · Authority", ex: "Watches, phones", col: ACCENT, angle: "0deg", scale: 1 },
+    { name: "45° 3/4", vibe: "Approachable", ex: "Cookware, decor", col: TEAL, angle: "-25deg", scale: 0.9 },
+    { name: "Top-Down Flat", vibe: "Editorial · Lifestyle", ex: "Food, fashion", col: GOLD, angle: "90deg", scale: 0.65 },
+    { name: "Macro Close-Up", vibe: "Texture · Craft", ex: "Materials, detail", col: PINK, angle: "0deg", scale: 1.6 },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={TEAL} />
+      <CornerGlow color={TEAL} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Camera Angle · Where You Stand = The Story" color={TEAL} size={18} />
+        <H1 size={84}>Move the camera. <span style={{color:TEAL}}>Change the story.</span></H1>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 22, marginTop: 20 }}>
+          {angles.map(a => (
+            <div key={a.name} style={{ background: CARD, borderRadius: 18, overflow: "hidden", border: `2px solid ${a.col}33` }}>
+              <div style={{ height: 280, background: "linear-gradient(135deg, #1a1a2e 0%, #0a0a12 100%)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <div style={{
+                  width: 130, height: 130, borderRadius: 16,
+                  background: `linear-gradient(135deg, ${a.col}cc, ${a.col}66)`,
+                  transform: `rotate(${a.angle}) scale(${a.scale})`,
+                  boxShadow: `0 15px 45px ${a.col}55, 0 0 0 2px ${a.col}`,
+                }} />
+              </div>
+              <div style={{ padding: "22px 24px" }}>
+                <div style={{ fontSize: 26, fontWeight: 800, color: a.col, marginBottom: 8 }}>{a.name}</div>
+                <div style={{ fontSize: 18, color: MUTED, marginBottom: 10 }}>{a.vibe}</div>
+                <div style={{ fontSize: 16, color: OFF, fontStyle: "italic" }}>→ {a.ex}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 34, fontSize: 22, color: MUTED, textAlign: "center", fontStyle: "italic" }}>
+          Front says "hero." Top-down says "editorial." Macro says "artisan."
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 15: WEAVY FLOWS ============
+function SlideWeavyFlow() {
+  return (
+    <div style={slideBase("#080f10")}>
+      <SideBar color={GREEN} />
+      <CornerGlow color={GREEN} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="Weavy's Superpower" color={GREEN} size={18} />
+        <H1 size={80}>Mode-based flows > <span style={{color:MUTED}}>one giant text box.</span></H1>
+        <H2 size={26}>Other AI tools make you guess. Weavy gives you a runway for every use case.</H2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36 }}>
+          <div style={{ background: "#1a1515", borderRadius: 20, padding: "36px 42px", border: "2px solid #333" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: MUTED, letterSpacing: 2, marginBottom: 22 }}>❌ OTHER TOOLS</div>
+            <div style={{ background: "#0a0a0a", border: "2px dashed #444", borderRadius: 14, padding: "50px 30px", textAlign: "center", marginBottom: 28 }}>
+              <div style={{ fontSize: 72, marginBottom: 14 }}>📝</div>
+              <div style={{ fontSize: 24, color: "#666" }}>One text box.<br/>Type. Hope. Pray.</div>
+            </div>
+            <div style={{ fontSize: 22, color: "#888", lineHeight: 1.7 }}>
+              → No structure.<br/>→ No consistency.<br/>→ No second-try logic.
+            </div>
+          </div>
+          <div style={{ background: "#0F1F14", borderRadius: 20, padding: "36px 42px", border: `2px solid ${GREEN}55` }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: GREEN, letterSpacing: 2, marginBottom: 22 }}>✅ WEAVY</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
+              {[
+                { name: "Hero Shot Flow", col: TEAL, icon: "🎯" },
+                { name: "Campaign Variation", col: GOLD, icon: "🔄" },
+                { name: "Bulk Render Flow", col: PINK, icon: "📦" },
+              ].map(f => (
+                <div key={f.name} style={{ background: "#0a0a0a", borderRadius: 14, padding: "16px 22px", border: `2px solid ${f.col}33`, display: "flex", alignItems: "center", gap: 18 }}>
+                  <div style={{ fontSize: 36 }}>{f.icon}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: f.col, flex: 1 }}>{f.name}</div>
+                  <div style={{ fontSize: 14, color: MUTED, letterSpacing: 2, fontWeight: 700 }}>PRE-BUILT</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 22, color: OFF, lineHeight: 1.7 }}>
+              → Purpose-built pipes.<br/>→ Less guessing.<br/>→ More shipping.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 16: DEMO ============
+function SlideDemo() {
+  return (
+    <div style={{ ...slideBase(BG), alignItems: "center", textAlign: "center" }}>
+      <SideBar color={PINK} />
+      <CornerGlow color={PINK} />
+      <div style={{ position: "relative", zIndex: 1, margin: "auto" }}>
+        <Tag text="Live Demo · Switch to Weavy" color={PINK} size={20} />
+        <div style={{ fontSize: 220, margin: "30px 0" }}>🎬</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 130, fontWeight: 700, color: "#fff", lineHeight: 1.05, marginBottom: 30 }}>
+          Let me <span style={{color:PINK}}>show</span> you.
+        </div>
+        <div style={{ color: MUTED, fontSize: 32, maxWidth: 900, margin: "0 auto 44px", lineHeight: 1.5 }}>
+          Jumping into Weavy. Walking through my real projects. Hero shots. Variation sets. Bulk renders.
+        </div>
+        <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+          {["Open Weavy", "Pick a flow", "Run a render"].map((s, i) => (
+            <span key={s} style={{
+              background: PINK + "18", border: `2px solid ${PINK}55`, color: PINK,
+              padding: "14px 28px", borderRadius: 28, fontSize: 22, fontWeight: 700,
+            }}>{i+1}. {s}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 17: WHY PROMPTS MATTER ============
+function SlideWhyPrompts() {
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={ACCENT} />
+      <CornerGlow color={ACCENT} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="The Punchline" color={ACCENT} size={18} />
+        <H1 size={92}>A great prompt = a great image.</H1>
+        <H2 size={30}>A great prompt is not <i>typed</i>. It's <span style={{color:ACCENT, fontWeight:800}}>crafted.</span></H2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22 }}>
+          {[
+            { t: "Right role-play", c: ACCENT, i: "🎭" },
+            { t: "Right lighting", c: GOLD, i: "💡" },
+            { t: "Right camera", c: TEAL, i: "📷" },
+            { t: "Right material", c: PINK, i: "🪙" },
+            { t: "Right depth", c: GREEN, i: "🌫️" },
+            { t: "Consistent across shoot", c: BLUE, i: "🔗" },
+          ].map(x => (
+            <div key={x.t} style={{ background: CARD, borderRadius: 16, padding: "26px 32px", display: "flex", alignItems: "center", gap: 22, borderLeft: `5px solid ${x.c}` }}>
+              <div style={{ fontSize: 52 }}>{x.i}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: x.c }}>{x.t}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 50, background: ACCENT + "18", border: `2px solid ${ACCENT}55`, borderRadius: 20, padding: "30px 42px", textAlign: "center" }}>
+          <div style={{ fontSize: 42, fontWeight: 800, color: ACCENT, fontFamily: "Georgia, serif" }}>Who has 3 hours to think about all this every time?</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 18: S1 REVEAL ============
+function SlideS1Reveal() {
+  return (
+    <div style={{ ...slideBase(BG), alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 1400, height: 1400, borderRadius: "50%", background: `radial-gradient(circle, ${ACCENT}22 0%, transparent 55%)`, pointerEvents: "none" }} />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1400, margin: "auto" }}>
+        <Tag text="Nobody. That's why I built this." color={ACCENT} size={20} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 170, fontWeight: 700, color: "#fff", lineHeight: 0.98, margin: "40px 0 10px" }}>
+          S1 Hero Prompt
+        </div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 170, fontWeight: 700, color: ACCENT, lineHeight: 0.98, marginBottom: 40 }}>
+          Engine.
+        </div>
+        <div style={{ color: MUTED, fontSize: 32, maxWidth: 1000, margin: "0 auto 50px", lineHeight: 1.5 }}>
+          The <span style={{color:TEAL, fontWeight:700}}>art-director-grade AI system</span> for ultra-realistic, catalog-quality image prompts. Runs inside Claude. Talks to Weavy.
+        </div>
+        <div style={{ background: CARD, border: `2px solid ${ACCENT}55`, borderRadius: 24, padding: "32px 56px", display: "inline-block" }}>
+          <div style={{ fontSize: 22, color: MUTED, marginBottom: 10 }}>3 hours of prompt engineering</div>
+          <div style={{ fontSize: 32, color: ACCENT, fontWeight: 900, margin: "12px 0" }}>↓</div>
+          <div style={{ fontSize: 42, color: "#fff", fontWeight: 900, fontFamily: "Georgia, serif" }}>10 minutes of tapping.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 19: S1 STATS ============
+function SlideS1Stats() {
+  const stats = [
+    { n: "4", l: "Modes", d: "Single · Consistent · Variation · Composition", col: ACCENT },
+    { n: "7", l: "Guided Steps", d: "Never chaotic. Always deliberate.", col: TEAL },
+    { n: "3", l: "Platforms", d: "Claude · ChatGPT · Figma Plugin", col: GOLD },
+    { n: "∞", l: "Bulk Prompts", d: "Piped into Weavy batch render.", col: GREEN },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={ACCENT} />
+      <CornerGlow color={ACCENT} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="By the Numbers" color={ACCENT} size={18} />
+        <H1 size={88}>What S1 <span style={{color:ACCENT}}>actually</span> gives you.</H1>
+        <H2 size={26}>A system. Not a form. Not a template. Not another "AI prompt generator."</H2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 22 }}>
+          {stats.map(s => (
+            <div key={s.l} style={{ background: CARD, borderRadius: 22, padding: "38px 26px", borderTop: `6px solid ${s.col}`, textAlign: "center" }}>
+              <div style={{ fontSize: 140, fontWeight: 900, color: s.col, fontFamily: "Georgia, serif", lineHeight: 1 }}>{s.n}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginTop: 18, marginBottom: 12 }}>{s.l}</div>
+              <div style={{ fontSize: 18, color: MUTED, lineHeight: 1.5 }}>{s.d}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 40, background: CARD, borderRadius: 18, padding: "28px 40px", borderLeft: `5px solid ${ACCENT}` }}>
+          <div style={{ fontSize: 18, color: ACCENT, fontWeight: 900, letterSpacing: 3, marginBottom: 12 }}>THE KEY DIFFERENCE</div>
+          <div style={{ fontSize: 24, color: OFF, lineHeight: 1.5 }}>
+            Generic tools output <b>one prompt</b> at a time. S1 outputs <b style={{color:ACCENT}}>consistent sets</b> — same light, same mood, 10 products, one campaign.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 20: S1 × WEAVY LOOP ============
+function SlideLoop() {
+  const steps = [
+    { n: "1", icon: "💬", t: "Open S1", s: "Claude or Figma plugin", col: ACCENT },
+    { n: "2", icon: "✋", t: "Tap 5 cards", s: "Product · Mood · Light · Camera · Style", col: TEAL },
+    { n: "3", icon: "📄", t: "Get prompt block", s: "Multi-prompt output w/ * separator", col: GOLD },
+    { n: "4", icon: "⚡", t: "Paste into Weavy", s: "Bulk render flow", col: PINK },
+    { n: "5", icon: "🖼️", t: "Get 10 images", s: "Parallel. Production-ready.", col: GREEN },
+  ];
+  return (
+    <div style={slideBase(BG)}>
+      <SideBar color={GREEN} />
+      <CornerGlow color={GREEN} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Tag text="S1 × Weavy · The Full Loop" color={GREEN} size={18} />
+        <H1 size={92}>The magic trick, <span style={{color:GREEN}}>end to end.</span></H1>
+        <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 40 }}>
+          {steps.map((s, i) => (
+            <React.Fragment key={s.n}>
+              <div style={{ flex: 1, background: CARD, borderRadius: 18, padding: "30px 18px", borderTop: `5px solid ${s.col}`, textAlign: "center" }}>
+                <div style={{ width: 54, height: 54, borderRadius: "50%", background: s.col, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", fontWeight: 900, fontSize: 22 }}>
+                  {s.n}
+                </div>
+                <div style={{ fontSize: 72, marginBottom: 18 }}>{s.icon}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: s.col, marginBottom: 10 }}>{s.t}</div>
+                <div style={{ fontSize: 15, color: MUTED, lineHeight: 1.45 }}>{s.s}</div>
+              </div>
+              {i < steps.length - 1 && (
+                <div style={{ display: "flex", alignItems: "center", fontSize: 42, color: MUTED, flexShrink: 0 }}>→</div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+        <div style={{ marginTop: 50, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 26 }}>
+          <div style={{ background: "#1a1515", borderRadius: 16, padding: "28px 36px", border: "2px solid #333" }}>
+            <div style={{ fontSize: 16, color: MUTED, letterSpacing: 2, fontWeight: 800, marginBottom: 10 }}>BEFORE</div>
+            <div style={{ fontSize: 26, color: "#888" }}>Art director + 3D artist + prompt engineer. <b>3 days.</b></div>
+          </div>
+          <div style={{ background: GREEN + "18", borderRadius: 16, padding: "28px 36px", border: `2px solid ${GREEN}55` }}>
+            <div style={{ fontSize: 16, color: GREEN, letterSpacing: 2, fontWeight: 800, marginBottom: 10 }}>NOW</div>
+            <div style={{ fontSize: 26, color: "#fff" }}>You + S1 + Weavy. <b style={{color:GREEN}}>30 minutes.</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ SLIDE 21: CLOSE ============
+function SlideClose() {
+  return (
+    <div style={{ ...slideBase(BG), alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 1200, height: 1200, borderRadius: "50%", background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 55%)`, pointerEvents: "none" }} />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "auto" }}>
+        <Tag text="That's it." color={ACCENT} size={20} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 130, fontWeight: 700, color: "#fff", lineHeight: 1.02, margin: "36px 0 28px" }}>
+          Go make something<br/>
+          <span style={{ color: ACCENT }}>beautiful.</span>
+        </div>
+        <div style={{ color: MUTED, fontSize: 28, maxWidth: 900, margin: "0 auto 36px", lineHeight: 1.5 }}>
+          Your homework:
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900, margin: "0 auto 44px", textAlign: "left" }}>
+          {[
+            { n: "1", t: "Write down one skill you already have. Tonight.", col: GOLD },
+            { n: "2", t: "Set up one Claude automation. This week.", col: TEAL },
+            { n: "3", t: "Next shoot brief → S1 → Weavy → ship.", col: ACCENT },
+          ].map(h => (
+            <div key={h.n} style={{ background: CARD, borderRadius: 16, padding: "24px 34px", borderLeft: `5px solid ${h.col}`, display: "flex", alignItems: "center", gap: 24 }}>
+              <div style={{ width: 54, height: 54, borderRadius: "50%", background: h.col, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 22, flexShrink: 0 }}>{h.n}</div>
+              <div style={{ fontSize: 24, color: OFF }}>{h.t}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 18, color: MUTED, letterSpacing: 4, fontWeight: 700 }}>S1 × WEAVY · THANK YOU</div>
+      </div>
+    </div>
+  );
+}
+
+// ===== MAIN APP =====
+const slides = [
+  { key: "cover", label: "Cover", comp: SlideCover },
+  { key: "momdad-intro", label: "ChatGPT vs Claude", comp: SlideMomDadIntro },
+  { key: "momdad-compare", label: "Mom vs Dad", comp: SlideMomDadCompare },
+  { key: "live-demo", label: "Live Demo", comp: SlideLiveDemo },
+  { key: "what-skill", label: "What is a Skill", comp: SlideWhatIsSkill },
+  { key: "skill-examples", label: "Skill Examples", comp: SlideSkillExamples },
+  { key: "automations", label: "Automations", comp: SlideAutomations },
+  { key: "backstage", label: "Cook+Kitchen+Msg", comp: SlideBackstage },
+  { key: "my-story", label: "My Story", comp: SlideMyStory },
+  { key: "weavy-transition", label: "Weavy", comp: SlideWeavyTransition },
+  { key: "role-play", label: "Role-Play", comp: SlideRolePlay },
+  { key: "3d-mindset", label: "3D Mindset", comp: Slide3DMindset },
+  { key: "lighting", label: "Lighting", comp: SlideLighting },
+  { key: "camera", label: "Camera", comp: SlideCamera },
+  { key: "weavy-flow", label: "Weavy Flow", comp: SlideWeavyFlow },
+  { key: "demo", label: "Demo", comp: SlideDemo },
+  { key: "why-prompts", label: "Why Prompts", comp: SlideWhyPrompts },
+  { key: "s1-reveal", label: "S1 Reveal", comp: SlideS1Reveal },
+  { key: "s1-stats", label: "S1 Stats", comp: SlideS1Stats },
+  { key: "loop", label: "S1 × Weavy", comp: SlideLoop },
+  { key: "close", label: "Close", comp: SlideClose },
+];
+
+function App() {
+  const [current, setCurrent] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") setCurrent(p => Math.min(slides.length - 1, p + 1));
+      if (e.key === "ArrowLeft") setCurrent(p => Math.max(0, p - 1));
+      if (e.key === "Home") setCurrent(0);
+      if (e.key === "End") setCurrent(slides.length - 1);
+      if (e.key === "f" || e.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const SlideComp = slides[current].comp;
+
+  return (
+    <div style={{ background: "#050508", height: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "10px 20px", borderBottom: "1px solid #1a1a2e",
+        background: "#08080f", flexShrink: 0,
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: ACCENT, letterSpacing: 2 }}>IMAGE GEN × S1 × WEAVY</div>
+        <button onClick={() => setNavOpen(!navOpen)} style={{
+          background: "transparent", border: `1px solid ${MUTED}55`, color: MUTED,
+          padding: "5px 14px", borderRadius: 16, fontSize: 12, cursor: "pointer",
+        }}>
+          {navOpen ? "✕ Close" : "☰ Slides"}
+        </button>
+        <div style={{ fontSize: 12, color: MUTED, fontFamily: "monospace" }}>{current + 1} / {slides.length}</div>
+      </div>
+
+      {navOpen && (
+        <div style={{
+          position: "absolute", top: 42, left: 0, right: 0, zIndex: 100,
+          background: "#0a0a14", borderBottom: "1px solid #1a1a2e",
+          padding: "16px 20px", maxHeight: "70vh", overflowY: "auto",
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+            {slides.map((s, i) => (
+              <button key={s.key} onClick={() => { setCurrent(i); setNavOpen(false); }} style={{
+                background: i === current ? ACCENT + "33" : CARD,
+                border: `1px solid ${i === current ? ACCENT : "#2a2a3e"}`,
+                color: i === current ? "#fff" : OFF,
+                padding: "10px 14px", borderRadius: 10, fontSize: 12,
+                cursor: "pointer", textAlign: "left", fontWeight: 600,
+              }}>
+                <div style={{ color: MUTED, fontSize: 10, marginBottom: 2 }}>{String(i+1).padStart(2,"0")}</div>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <ScaleToFit>
+          <SlideComp />
+        </ScaleToFit>
+      </div>
+
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "10px 24px", borderTop: "1px solid #1a1a2e",
+        background: "#08080f", flexShrink: 0,
+      }}>
+        <button onClick={() => setCurrent(p => Math.max(0, p - 1))} disabled={current === 0} style={{
+          background: current === 0 ? "#111" : CARD, border: "1px solid #2a2a3e",
+          color: current === 0 ? "#333" : OFF, padding: "7px 18px", borderRadius: 8,
+          cursor: current === 0 ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600,
+        }}>← Prev</button>
+        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+          {slides.map((_, i) => (
+            <div key={i} onClick={() => setCurrent(i)} style={{
+              width: i === current ? 22 : 6, height: 6, borderRadius: 3,
+              background: i === current ? ACCENT : "#2a2a3e",
+              cursor: "pointer", transition: "all 0.25s ease",
+            }} />
+          ))}
+        </div>
+        <button onClick={() => setCurrent(p => Math.min(slides.length - 1, p + 1))} disabled={current === slides.length - 1} style={{
+          background: current === slides.length - 1 ? "#111" : ACCENT, border: "none",
+          color: current === slides.length - 1 ? "#333" : "#fff", padding: "7px 20px", borderRadius: 8,
+          cursor: current === slides.length - 1 ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 700,
+        }}>Next →</button>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
