@@ -414,6 +414,67 @@
             <h3>Your Prompt</h3>
             <div id="result-text" style="background: #252532; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; white-space: pre-wrap;"></div>
           </div>
+          
+          <div id="step6-menu" class="card" style="margin-top: 16px;">
+            <h3>What would you like to do next?</h3>
+            <div class="option-grid">
+              <div class="option" id="close-task-btn">
+                <h4>Close Task</h4>
+                <p>Finish and exit</p>
+              </div>
+              <div class="option" id="generate-another-btn">
+                <h4>Generate Another Version</h4>
+                <p>Iterate on this prompt</p>
+              </div>
+              <div class="option" id="modify-inputs-btn">
+                <h4>Modify Inputs</h4>
+                <p>Change settings</p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="step61-menu" class="card" style="margin-top: 16px; display: none;">
+            <h3>How would you like to proceed?</h3>
+            <div class="option-grid">
+              <div class="option" id="describe-changes-btn">
+                <h4>Describe Changes You Want</h4>
+                <p>Freeform input</p>
+              </div>
+              <div class="option" id="ai-suggestion-btn">
+                <h4>Let Me Suggest Better Direction</h4>
+                <p>AI-powered iteration</p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="user-iteration-input" class="card" style="margin-top: 16px; display: none;">
+            <h3>Describe What You'd Like to Change</h3>
+            <p>You can suggest anything: subject, background, lighting, depth, color palette, composition, props, scene, action</p>
+            <textarea id="iteration-text" style="width: 100%; min-height: 100px; background: #252532; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical;" placeholder="Example: make it darker and more premium, or add a subtle accent object"></textarea>
+            <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
+              <button class="button button-secondary" id="cancel-iteration-btn">Cancel</button>
+              <button class="button" id="submit-iteration-btn">Apply Changes</button>
+            </div>
+          </div>
+          
+          <div id="ai-suggestion-output" class="card" style="margin-top: 16px; display: none;">
+            <h3>AI Suggestion</h3>
+            <p id="ai-suggestion-text"></p>
+            <div class="option-grid" style="margin-top: 16px;">
+              <div class="option" id="apply-suggestion-btn">
+                <h4>Yes, Try This</h4>
+                <p>Regenerate with suggestion</p>
+              </div>
+              <div class="option" id="another-suggestion-btn">
+                <h4>Suggest Another Option</h4>
+                <p>Different direction</p>
+              </div>
+              <div class="option" id="back-to-menu-btn">
+                <h4>Go Back</h4>
+                <p>Return to menu</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -771,6 +832,7 @@
         
         document.getElementById('result-text').textContent = prompt;
         document.getElementById('result-section').style.display = 'block';
+        document.getElementById('step6-menu').style.display = 'block';
         
       } catch (error) {
         console.error('Failed to generate prompt:', error);
@@ -779,6 +841,190 @@
       
       continueBtn.disabled = false;
       continueBtn.textContent = 'Generate';
+    }
+    
+    // STEP 6: Close Task
+    function closeTask() {
+      document.getElementById('result-section').innerHTML = '<div class="card"><h3>Done 👍</h3><p>Feel free to come back anytime.</p></div>';
+    }
+    
+    // STEP 6: Modify Inputs (go back to STEP 3)
+    function modifyInputs() {
+      document.getElementById('step6-menu').style.display = 'none';
+      document.getElementById('step61-menu').style.display = 'none';
+      document.getElementById('user-iteration-input').style.display = 'none';
+      document.getElementById('ai-suggestion-output').style.display = 'none';
+      goToStep(3);
+    }
+    
+    // STEP 6: Generate Another Version (show STEP 6.1)
+    function generateAnotherVersion() {
+      document.getElementById('step6-menu').style.display = 'none';
+      document.getElementById('step61-menu').style.display = 'block';
+    }
+    
+    // STEP 6.1: Describe Changes
+    function describeChanges() {
+      document.getElementById('step61-menu').style.display = 'none';
+      document.getElementById('user-iteration-input').style.display = 'block';
+    }
+    
+    // STEP 6.1: AI Suggestion
+    async function fetchAISuggestion() {
+      document.getElementById('step61-menu').style.display = 'none';
+      document.getElementById('ai-suggestion-output').style.display = 'block';
+      document.getElementById('ai-suggestion-text').textContent = 'Loading suggestion...';
+      
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'ai_suggestion',
+            lockedConfig: {
+              mode: state.mode,
+              variationLevel: state.variationLevel,
+              subjects: state.subjects,
+              productRef: state.productRef ? 'yes' : 'no',
+              sceneRef: state.sceneRef ? 'yes' : 'no',
+              preset: state.preset,
+              noBranding: state.noBranding,
+              motionAccents: state.motionAccents,
+              consistencyMode: state.consistencyMode,
+              config: state.config
+            }
+          })
+        });
+        
+        const data = await response.json();
+        let suggestion = data.reply || data.suggestion || 'No suggestion available';
+        
+        // Strip markdown if present
+        if (typeof suggestion === 'string' && suggestion.includes('```')) {
+          suggestion = suggestion.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+        }
+        
+        document.getElementById('ai-suggestion-text').textContent = suggestion;
+        
+      } catch (error) {
+        console.error('Failed to fetch AI suggestion:', error);
+        document.getElementById('ai-suggestion-text').textContent = 'Error: Failed to get suggestion';
+      }
+    }
+    
+    // User Iteration: Submit
+    async function submitUserIteration() {
+      const userRequest = document.getElementById('iteration-text').value;
+      if (!userRequest.trim()) {
+        alert('Please describe what you would like to change');
+        return;
+      }
+      
+      document.getElementById('user-iteration-input').style.display = 'none';
+      document.getElementById('result-text').textContent = 'Generating...';
+      
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'iterate_user',
+            lockedConfig: {
+              mode: state.mode,
+              variationLevel: state.variationLevel,
+              subjects: state.subjects,
+              productRef: state.productRef ? 'yes' : 'no',
+              sceneRef: state.sceneRef ? 'yes' : 'no',
+              preset: state.preset,
+              noBranding: state.noBranding,
+              motionAccents: state.motionAccents,
+              consistencyMode: state.consistencyMode,
+              config: state.config
+            },
+            userRequest: userRequest
+          })
+        });
+        
+        const data = await response.json();
+        let prompt = data.reply || data.prompt || 'No prompt generated';
+        
+        // Strip markdown if present
+        if (typeof prompt === 'string' && prompt.includes('```')) {
+          prompt = prompt.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+          prompt = prompt.replace(/\\n/g, '\n');
+        }
+        
+        document.getElementById('result-text').textContent = prompt;
+        document.getElementById('step6-menu').style.display = 'block';
+        
+      } catch (error) {
+        console.error('Failed to iterate:', error);
+        alert('Error: Failed to apply changes');
+      }
+    }
+    
+    // AI Suggestion: Apply
+    async function applyAISuggestion() {
+      const suggestion = document.getElementById('ai-suggestion-text').textContent;
+      
+      document.getElementById('ai-suggestion-output').style.display = 'none';
+      document.getElementById('result-text').textContent = 'Generating...';
+      
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'iterate_ai',
+            lockedConfig: {
+              mode: state.mode,
+              variationLevel: state.variationLevel,
+              subjects: state.subjects,
+              productRef: state.productRef ? 'yes' : 'no',
+              sceneRef: state.sceneRef ? 'yes' : 'no',
+              preset: state.preset,
+              noBranding: state.noBranding,
+              motionAccents: state.motionAccents,
+              consistencyMode: state.consistencyMode,
+              config: state.config
+            },
+            suggestion: suggestion
+          })
+        });
+        
+        const data = await response.json();
+        let prompt = data.reply || data.prompt || 'No prompt generated';
+        
+        // Strip markdown if present
+        if (typeof prompt === 'string' && prompt.includes('```')) {
+          prompt = prompt.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+          prompt = prompt.replace(/\\n/g, '\n');
+        }
+        
+        document.getElementById('result-text').textContent = prompt;
+        document.getElementById('step6-menu').style.display = 'block';
+        
+      } catch (error) {
+        console.error('Failed to apply suggestion:', error);
+        alert('Error: Failed to apply suggestion');
+      }
+    }
+    
+    // AI Suggestion: Another
+    function fetchAnotherSuggestion() {
+      fetchAISuggestion();
+    }
+    
+    // AI Suggestion: Back
+    function backToMenu() {
+      document.getElementById('ai-suggestion-output').style.display = 'none';
+      document.getElementById('step61-menu').style.display = 'block';
+    }
+    
+    // User Iteration: Cancel
+    function cancelIteration() {
+      document.getElementById('user-iteration-input').style.display = 'none';
+      document.getElementById('step61-menu').style.display = 'block';
     }
     
     // Reset
@@ -837,6 +1083,20 @@
       // Step 5 buttons
       document.getElementById('generate-prompt-btn').addEventListener('click', generatePrompt);
       document.getElementById('reset-all-btn').addEventListener('click', resetAll);
+      
+      // STEP 6 buttons
+      document.getElementById('close-task-btn').addEventListener('click', closeTask);
+      document.getElementById('generate-another-btn').addEventListener('click', generateAnotherVersion);
+      document.getElementById('modify-inputs-btn').addEventListener('click', modifyInputs);
+      
+      // STEP 6.1 buttons
+      document.getElementById('describe-changes-btn').addEventListener('click', describeChanges);
+      document.getElementById('ai-suggestion-btn').addEventListener('click', fetchAISuggestion);
+      document.getElementById('submit-iteration-btn').addEventListener('click', submitUserIteration);
+      document.getElementById('cancel-iteration-btn').addEventListener('click', cancelIteration);
+      document.getElementById('apply-suggestion-btn').addEventListener('click', applyAISuggestion);
+      document.getElementById('another-suggestion-btn').addEventListener('click', fetchAnotherSuggestion);
+      document.getElementById('back-to-menu-btn').addEventListener('click', backToMenu);
       
       // Subjects input
       document.getElementById('subjects-input').addEventListener('input', (e) => {
