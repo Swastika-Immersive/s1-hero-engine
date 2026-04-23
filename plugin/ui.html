@@ -353,7 +353,7 @@
         <div class="card">
           <h3>Describe Your Subject</h3>
           <p>What are you creating prompts for?</p>
-          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..." oninput="updateFooter(); triggerPrefetch()"></textarea>
+          <textarea id="subjects-input" class="input-field" rows="3" placeholder="e.g., A minimalist coffee maker with brushed steel finish..." oninput="state.subjects = this.value; updateFooter(); triggerPrefetch()"></textarea>
         </div>
         
         <div class="card">
@@ -630,13 +630,11 @@
     function toggleProductRef() {
       state.productRef = !state.productRef;
       document.getElementById('product-ref-toggle').classList.toggle('on');
-      updateFooter();
     }
     
     function toggleSceneRef() {
       state.sceneRef = !state.sceneRef;
       document.getElementById('scene-ref-toggle').classList.toggle('on');
-      updateFooter();
     }
     
     // Prefetch Step 3 config
