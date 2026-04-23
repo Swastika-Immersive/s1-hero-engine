@@ -712,9 +712,62 @@
               <div id="result-text" class="result-text"></div>
             </div>
           </div>
-          <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
-            <button class="button" onclick="copyPrompt()">Copy to Clipboard</button>
-            <button class="button button-secondary" onclick="resetAll()">Start Over</button>
+          <div id="step6-menu" class="card" style="margin-top: 16px;">
+            <h3>What would you like to do next?</h3>
+            <div class="option-grid">
+              <div class="option" onclick="closeTask()">
+                <h4>Close Task</h4>
+                <p>Finish and exit</p>
+              </div>
+              <div class="option" onclick="showStep61()">
+                <h4>Generate Another Version</h4>
+                <p>Iterate on this prompt</p>
+              </div>
+              <div class="option" onclick="modifyConfig()">
+                <h4>Modify Inputs</h4>
+                <p>Adjust settings</p>
+              </div>
+            </div>
+          </div>
+          <div id="step61-menu" class="card" style="margin-top: 16px; display: none;">
+            <h3>How would you like to proceed?</h3>
+            <div class="option-grid">
+              <div class="option" onclick="showUserIteration()">
+                <h4>Describe Changes You Want</h4>
+                <p>Freeform input</p>
+              </div>
+              <div class="option" onclick="showAISuggestion()">
+                <h4>Let Me Suggest Better Direction</h4>
+                <p>AI-powered iteration</p>
+              </div>
+            </div>
+          </div>
+          <div id="user-iteration-input" class="card" style="margin-top: 16px; display: none;">
+            <h3>Describe What You'd Like to Change</h3>
+            <p>You can suggest anything: subject, background, lighting, depth, color palette, composition, props, scene, action</p>
+            <textarea id="iteration-text" style="width: 100%; min-height: 100px; background: #252532; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical;" placeholder="Example: make it darker and more premium, or add a subtle accent object"></textarea>
+            <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
+              <button class="button button-secondary" onclick="showStep61()">Cancel</button>
+              <button class="button" onclick="submitUserIteration()">Apply Changes</button>
+            </div>
+          </div>
+          <div id="ai-suggestion-output" class="card" style="margin-top: 16px; display: none;">
+            <h3>AI Suggestion</h3>
+            <p id="ai-suggestion-text"></p>
+            <div class="option-grid" style="margin-top: 16px;">
+              <div class="option" onclick="applyAISuggestion()">
+                <h4>Yes, Try This</h4>
+                <p>Regenerate with suggestion</p>
+              </div>
+              <div class="option" onclick="showAISuggestion()">
+                <h4>Suggest Another Option</h4>
+                <p>Different direction</p>
+              </div>
+              <div class="option" onclick="showStep61()">
+                <h4>Go Back</h4>
+                <p>Return to menu</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -744,11 +797,209 @@
       noBranding: false,
       motionAccents: false,
       consistencyMode: false,
-      config: {},
+      config: {
+        background: defaultConfig.background,
+        surface: defaultConfig.surface,
+        arrangement: defaultConfig.arrangement,
+        camera: defaultConfig.camera,
+        lighting: defaultConfig.lighting,
+        style: defaultConfig.stylePreset,
+        branding: defaultConfig.branding
+      },
       subjectConfigs: {}
     };
     
     const BACKEND_URL = 'https://backend-mocha-six-61.vercel.app/api/chat';
+    
+    const defaultConfig = {
+      background: "clean studio",
+      surface: "neutral matte",
+      arrangement: "centered hero",
+      camera: "eye-level",
+      lighting: "soft diffused",
+      stylePreset: "ecommerce clean",
+      branding: "off"
+    };
+    
+    // Helper function to normalize any backend response to consistent format
+    function normalizeConfigResponse(apiResponse) {
+      console.log("=== NORMALIZING CONFIG RESPONSE ===");
+      console.log("Input:", JSON.stringify(apiResponse, null, 2));
+      
+      // If response is a string with markdown, strip and parse
+      if (typeof apiResponse === 'string') {
+        console.log("Response is string, attempting to parse");
+        let cleanString = apiResponse.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+        try {
+          apiResponse = JSON.parse(cleanString);
+          console.log("Successfully parsed string to JSON");
+        } catch (e) {
+          console.error("Failed to parse string as JSON:", e);
+        }
+      }
+      
+      // If already in standard format, return as-is
+      if (apiResponse.inputs && Array.isArray(apiResponse.inputs)) {
+        console.log("Already in standard inputs format");
+        return apiResponse;
+      }
+      
+      // Normalize legacy base_inputs format to standard inputs format
+      if (apiResponse.base_inputs) {
+        console.log("Converting legacy base_inputs format to standard");
+        const inputs = [];
+        const baseInputs = apiResponse.base_inputs;
+        
+        // Convert each base_input to standard input format
+        const fieldMapping = {
+          background: 'Background',
+          surface: 'Surface',
+          arrangement: 'Arrangement',
+          camera: 'Camera',
+          lighting: 'Lighting'
+        };
+        
+        Object.keys(fieldMapping).forEach(key => {
+          const field = baseInputs[key];
+          if (field) {
+            inputs.push({
+              label: fieldMapping[key],
+              default: field.default || defaultConfig[key],
+              alternatives: field.alternatives || [defaultConfig[key]]
+            });
+          } else {
+            // Add default if missing
+            inputs.push({
+              label: fieldMapping[key],
+              default: defaultConfig[key],
+              alternatives: [defaultConfig[key]]
+            });
+          }
+        });
+        
+        // Add style preset and branding if not present
+        inputs.push({
+          label: 'Style Preset',
+          default: baseInputs.stylePreset || defaultConfig.stylePreset,
+          alternatives: [defaultConfig.stylePreset]
+        });
+        inputs.push({
+          label: 'Branding',
+          default: baseInputs.branding || defaultConfig.branding,
+          alternatives: [defaultConfig.branding]
+        });
+        
+        return { inputs };
+      }
+      
+      // Normalize per-subject format to standard inputs format (for single subject)
+      if (apiResponse.subjects && Array.isArray(apiResponse.subjects) && apiResponse.subjects.length > 0) {
+        console.log("Converting per-subject format to standard");
+        const subject = apiResponse.subjects[0];
+        const baseInputs = subject.base_inputs || {};
+        
+        const inputs = [];
+        const fieldMapping = {
+          background: 'Background',
+          surface: 'Surface',
+          arrangement: 'Arrangement',
+          camera: 'Camera',
+          lighting: 'Lighting'
+        };
+        
+        Object.keys(fieldMapping).forEach(key => {
+          const field = baseInputs[key];
+          if (field) {
+            inputs.push({
+              label: fieldMapping[key],
+              default: field.default || defaultConfig[key],
+              alternatives: field.alternatives || [defaultConfig[key]]
+            });
+          } else {
+            inputs.push({
+              label: fieldMapping[key],
+              default: defaultConfig[key],
+              alternatives: [defaultConfig[key]]
+            });
+          }
+        });
+        
+        // Add style preset and branding
+        inputs.push({
+          label: 'Style Preset',
+          default: baseInputs.stylePreset || defaultConfig.stylePreset,
+          alternatives: [defaultConfig.stylePreset]
+        });
+        inputs.push({
+          label: 'Branding',
+          default: baseInputs.branding || defaultConfig.branding,
+          alternatives: [defaultConfig.branding]
+        });
+        
+        // Add contextual inputs if present
+        if (subject.contextual_inputs) {
+          Object.keys(subject.contextual_inputs).forEach(key => {
+            const field = subject.contextual_inputs[key];
+            inputs.push({
+              label: key,
+              default: field.default || 'N/A',
+              alternatives: field.alternatives || ['N/A']
+            });
+          });
+        }
+        
+        return { inputs };
+      }
+      
+      // If unknown format, create default structure
+      console.warn("Unknown format, creating default structure");
+      return {
+        inputs: [
+          { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+          { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+          { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+          { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+          { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+          { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+          { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+        ]
+      };
+    }
+    
+    // Helper function to ensure config has complete structure
+    function ensureConfigStructure(config) {
+      const safeConfig = config || {};
+      
+      // If it's the new inputs array format, ensure each input has required structure
+      if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
+        return safeConfig;
+      }
+      
+      // For legacy formats, ensure base_inputs has all required fields
+      if (safeConfig.base_inputs) {
+        const baseInputs = safeConfig.base_inputs;
+        if (!baseInputs.background) baseInputs.background = { default: defaultConfig.background, alternatives: [defaultConfig.background] };
+        if (!baseInputs.surface) baseInputs.surface = { default: defaultConfig.surface, alternatives: [defaultConfig.surface] };
+        if (!baseInputs.arrangement) baseInputs.arrangement = { default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] };
+        if (!baseInputs.camera) baseInputs.camera = { default: defaultConfig.camera, alternatives: [defaultConfig.camera] };
+        if (!baseInputs.lighting) baseInputs.lighting = { default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] };
+      }
+      
+      // For per-subject formats, ensure each subject has complete base_inputs
+      if (safeConfig.subjects && Array.isArray(safeConfig.subjects)) {
+        safeConfig.subjects.forEach(subject => {
+          if (!subject.base_inputs) subject.base_inputs = {};
+          const baseInputs = subject.base_inputs;
+          if (!baseInputs.background) baseInputs.background = { default: defaultConfig.background, alternatives: [defaultConfig.background] };
+          if (!baseInputs.surface) baseInputs.surface = { default: defaultConfig.surface, alternatives: [defaultConfig.surface] };
+          if (!baseInputs.arrangement) baseInputs.arrangement = { default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] };
+          if (!baseInputs.camera) baseInputs.camera = { default: defaultConfig.camera, alternatives: [defaultConfig.camera] };
+          if (!baseInputs.lighting) baseInputs.lighting = { default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] };
+        });
+      }
+      
+      return safeConfig;
+    }
     
     const stepNames = [
       'Mode Selection',
@@ -1043,23 +1294,36 @@
     
     // Step 3: Config (API-driven)
     async function fetchStep3Config() {
-      if (state.step3ConfigCached) return;
+      // Always fetch to ensure fresh data with the fix
+      // if (state.step3ConfigCached) return;
+      
+      // PRE-VALIDATION: Clear any cached markdown-wrapped config
+      if (state.step3Config && typeof state.step3Config === 'string' && state.step3Config.includes('```')) {
+        console.warn("PRE-VALIDATION: Clearing cached markdown config");
+        state.step3Config = null;
+        state.step3ConfigCached = false;
+      }
+      
+      // Capture STEP 2 data
+      const step2Data = {
+        mode: state.mode,
+        variationLevel: state.variationLevel,
+        subjects: state.subjects,
+        productRef: state.productRef ? 'yes' : 'no',
+        sceneRef: state.sceneRef ? 'yes' : 'no',
+        sceneImages: state.sceneImages
+      };
       
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
         
         const response = await fetch(BACKEND_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             phase: 'step3_config',
-            mode: state.mode,
-            variationLevel: state.variationLevel,
-            subjects: state.subjects,
-            productRef: state.productRef ? 'yes' : 'no',
-            sceneRef: state.sceneRef ? 'yes' : 'no',
-            sceneImages: state.sceneImages
+            lockedConfig: step2Data
           }),
           signal: controller.signal
         });
@@ -1071,66 +1335,225 @@
         }
         
         const data = await response.json();
-        state.step3Config = data;
+        console.log("BACKEND RESPONSE:", data);
+        console.log("=== STEP 3 BACKEND RESPONSE ===");
+        console.log("Raw response:", JSON.stringify(data, null, 2));
+        console.log("Response type:", typeof data);
+        console.log("Has reply:", !!data.reply);
+        console.log("Reply type:", data.reply ? typeof data.reply : 'N/A');
+        
+        // Parse response - backend returns { "reply": { "inputs": [...] } } or { "reply": "..." }
+        let apiConfig = data;
+        if (data.reply) {
+          if (typeof data.reply === 'string') {
+            let replyString = data.reply;
+            console.log("Original reply string:", replyString);
+            // Strip markdown code blocks - handle all variations
+            replyString = replyString.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+            console.log("After markdown strip:", replyString);
+            try {
+              apiConfig = JSON.parse(replyString);
+              console.log("Parsed successfully:", apiConfig);
+            } catch (e) {
+              console.error("JSON parse error:", e);
+              apiConfig = replyString;
+            }
+          } else {
+            apiConfig = data.reply;
+          }
+        }
+        
+        // Normalize response to consistent format before processing
+        const normalizedConfig = normalizeConfigResponse(apiConfig);
+        console.log("Normalized config:", JSON.stringify(normalizedConfig, null, 2));
+        
+        // Final check - if still a string, try to strip markdown again
+        if (typeof normalizedConfig === 'string') {
+          console.warn("Normalized config is still string, stripping markdown again");
+          let cleanString = normalizedConfig.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+          try {
+            const finalConfig = JSON.parse(cleanString);
+            state.step3Config = finalConfig;
+            console.log("Final parsed config:", finalConfig);
+          } catch (e) {
+            console.error("Final parse failed:", e);
+            state.step3Config = cleanString;
+          }
+        } else {
+          state.step3Config = normalizedConfig;
+        }
+        
+        // Ensure config has complete structure before storing
+        state.step3Config = ensureConfigStructure(state.step3Config);
+        
+        // ULTIMATE DEFENSIVE CHECK - if config is still a string with markdown, strip it
+        if (typeof state.step3Config === 'string' && state.step3Config.includes('```')) {
+          console.warn("ULTIMATE: Config still has markdown, stripping");
+          let cleanString = state.step3Config.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+          try {
+            state.step3Config = JSON.parse(cleanString);
+            console.log("ULTIMATE: Successfully parsed after strip");
+          } catch (e) {
+            console.error("ULTIMATE: Parse failed, using defaults");
+            state.step3Config = {
+              inputs: [
+                { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+                { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+                { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+                { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+                { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+                { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+                { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+              ]
+            };
+          }
+        }
+        
         state.step3ConfigCached = true;
         
         renderStep3Config();
       } catch (error) {
         console.error('Failed to fetch Step 3 config:', error);
-        alert(`Backend error: ${error.message || 'Failed to load configuration'}`);
-        // Use fallback config immediately
-        state.step3Config = getFallbackConfig();
+        // Use default config as fallback instead of requiring retry
+        console.warn('Using default config as fallback');
+        const fallbackConfig = {
+          inputs: [
+            { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+            { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+            { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+            { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+            { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+            { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+            { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+          ]
+        };
+        state.step3Config = ensureConfigStructure(fallbackConfig);
         state.step3ConfigCached = true;
         renderStep3Config();
       }
     }
     
-    function getFallbackConfig() {
-      return {
-        category: 'generic',
-        base_inputs: {
-          background: { default: 'Clean studio', alternatives: ['Dark moody', 'Bright airy'], derived: false },
-          surface: { default: 'Matte surface', alternatives: ['Glossy', 'Textured'], derived: false },
-          arrangement: { default: 'Centered', alternatives: ['Dynamic angle', 'Flat lay'], derived: false },
-          camera: { default: '45-degree angle', alternatives: ['Top-down', 'Side view'], derived: false },
-          lighting: { default: 'Soft diffused', alternatives: ['Dramatic side', 'Natural window'], derived: false }
-        },
-        contextual_inputs: []
-      };
-    }
-    
     function renderStep3Config() {
-      const config = state.step3Config;
+      let config = state.step3Config;
       
-      // Check if response is in new per-subject format
-      if (config.shared && config.subjects) {
-        // New format with per-subject configs
-        const subjects = config.subjects;
-        const shared = config.shared;
+      console.log("=== RENDER STEP 3 CONFIG ===");
+      console.log("Config type:", typeof config);
+      console.log("Config value:", config);
+      
+      // IMMEDIATE MARKDOWN STRIPPING - do this first before anything else
+      if (typeof config === 'string') {
+        console.warn('Config is string, stripping markdown IMMEDIATELY');
+        config = config.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+        console.log("After strip:", config.substring(0, 100) + "...");
+        try {
+          config = JSON.parse(config);
+          state.step3Config = config;
+          console.log("Successfully parsed config");
+        } catch (e) {
+          console.error('Failed to parse config string:', e);
+          // If parsing fails, use defaults
+          config = {
+            inputs: [
+              { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+              { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+              { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+              { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+              { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+              { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+              { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+            ]
+          };
+          state.step3Config = config;
+        }
+      }
+      
+      // If config is null or undefined, use fallback defaults
+      if (!config) {
+        console.warn('Config is null/undefined, using default fallback');
+        const fallbackConfig = {
+          inputs: [
+            { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+            { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+            { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+            { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+            { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+            { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+            { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+          ]
+        };
+        state.step3Config = ensureConfigStructure(fallbackConfig);
+        renderStep3Config();
+        return;
+      }
+      
+      // Ensure config structure is complete before rendering
+      const safeConfig = ensureConfigStructure(config);
+      
+      // Check if response is in new simple inputs array format
+      if (safeConfig.inputs && Array.isArray(safeConfig.inputs)) {
+        // New format: simple inputs array with subject-specific rich defaults
+        document.getElementById('shared-section').style.display = 'none';
+        document.getElementById('tab-bar').style.display = 'none';
+        document.getElementById('single-subject-config').style.display = 'block';
+        document.getElementById('multi-subject-configs').style.display = 'none';
         
-        // Show shared section
+        // Clear existing config sections
+        const configContainer = document.getElementById('single-subject-config');
+        const existingSections = configContainer.querySelectorAll('.config-section');
+        existingSections.forEach(section => section.remove());
+        
+        // Render each input as a dynamic form group
+        safeConfig.inputs.forEach(input => {
+          const section = document.createElement('div');
+          section.className = 'config-section';
+          
+          const label = document.createElement('h4');
+          label.textContent = input.label;
+          section.appendChild(label);
+          
+          const select = document.createElement('select');
+          select.className = 'config-select';
+          select.id = input.label.replace(/\s+/g, '-').toLowerCase() + '-select';
+          
+          // Add default and alternatives as options
+          const options = [input.default, ...input.alternatives];
+          options.forEach(optionText => {
+            const option = document.createElement('option');
+            option.value = optionText;
+            option.textContent = optionText;
+            select.appendChild(option);
+          });
+          
+          section.appendChild(select);
+          configContainer.appendChild(section);
+          
+          // Store in state using merge pattern to ensure defaults
+          const configKey = input.label.replace(/\s+/g, '-').toLowerCase();
+          state.config[configKey] = input.default || defaultConfig[configKey] || input.default;
+        });
+      } else if (safeConfig.shared && safeConfig.subjects) {
+        // Legacy per-subject format
+        const subjects = safeConfig.subjects;
+        const shared = safeConfig.shared;
+        
         document.getElementById('shared-section').style.display = 'block';
         document.getElementById('shared-mood').textContent = shared.moodNote || '';
         document.getElementById('shared-style').textContent = 'Style: ' + (shared.styleSuggestion || 'auto');
         
-        // Show tabs if multiple subjects
         if (subjects.length > 1) {
           document.getElementById('tab-bar').style.display = 'flex';
           document.getElementById('single-subject-config').style.display = 'none';
           document.getElementById('multi-subject-configs').style.display = 'block';
           
-          // Render tabs
           const tabBar = document.getElementById('tab-bar');
           tabBar.innerHTML = '';
           
-          // Add "Shared" tab
           const sharedTab = document.createElement('div');
           sharedTab.className = 'tab active';
           sharedTab.textContent = 'Shared';
           sharedTab.onclick = () => switchTab('shared');
           tabBar.appendChild(sharedTab);
           
-          // Add subject tabs
           subjects.forEach((subject, index) => {
             const tab = document.createElement('div');
             tab.className = 'tab';
@@ -1140,10 +1563,8 @@
             tabBar.appendChild(tab);
           });
           
-          // Render multi-subject configs
           renderMultiSubjectConfigs(subjects);
         } else {
-          // Single subject - render directly
           document.getElementById('tab-bar').style.display = 'none';
           document.getElementById('single-subject-config').style.display = 'block';
           document.getElementById('multi-subject-configs').style.display = 'none';
@@ -1151,25 +1572,31 @@
           const subject = subjects[0];
           renderSingleSubjectConfig(subject);
         }
-      } else {
+      } else if (safeConfig.base_inputs) {
         // Legacy format - single config
         document.getElementById('shared-section').style.display = 'none';
         document.getElementById('tab-bar').style.display = 'none';
         document.getElementById('single-subject-config').style.display = 'block';
         document.getElementById('multi-subject-configs').style.display = 'none';
         
-        const baseInputs = config.base_inputs;
-        populateSelect('background-select', baseInputs.background);
-        populateSelect('surface-select', baseInputs.surface);
-        populateSelect('arrangement-select', baseInputs.arrangement);
-        populateSelect('camera-select', baseInputs.camera);
-        populateSelect('lighting-select', baseInputs.lighting);
+        const baseInputs = safeConfig.base_inputs;
+        if (baseInputs.background) populateSelect('background-select', baseInputs.background);
+        if (baseInputs.surface) populateSelect('surface-select', baseInputs.surface);
+        if (baseInputs.arrangement) populateSelect('arrangement-select', baseInputs.arrangement);
+        if (baseInputs.camera) populateSelect('camera-select', baseInputs.camera);
+        if (baseInputs.lighting) populateSelect('lighting-select', baseInputs.lighting);
         
-        state.config.background = baseInputs.background.default;
-        state.config.surface = baseInputs.surface.default;
-        state.config.arrangement = baseInputs.arrangement.default;
-        state.config.camera = baseInputs.camera.default;
-        state.config.lighting = baseInputs.lighting.default;
+        if (baseInputs.background) state.config.background = baseInputs.background.default;
+        if (baseInputs.surface) state.config.surface = baseInputs.surface.default;
+        if (baseInputs.arrangement) state.config.arrangement = baseInputs.arrangement.default;
+        if (baseInputs.camera) state.config.camera = baseInputs.camera.default;
+        if (baseInputs.lighting) state.config.lighting = baseInputs.lighting.default;
+      } else {
+        // Unknown format - show error
+        console.error('Unknown config format:', safeConfig);
+        document.getElementById('step3-loader').style.display = 'none';
+        alert('Error: Unknown configuration format returned from backend');
+        return;
       }
       
       // Hide loader, show content
@@ -1179,17 +1606,21 @@
     
     function renderSingleSubjectConfig(subject) {
       const baseInputs = subject.base_inputs;
-      populateSelect('background-select', baseInputs.background);
-      populateSelect('surface-select', baseInputs.surface);
-      populateSelect('arrangement-select', baseInputs.arrangement);
-      populateSelect('camera-select', baseInputs.camera);
-      populateSelect('lighting-select', baseInputs.lighting);
+      if (!baseInputs) {
+        console.error('Missing base_inputs in subject:', subject);
+        return;
+      }
+      if (baseInputs.background) populateSelect('background-select', baseInputs.background);
+      if (baseInputs.surface) populateSelect('surface-select', baseInputs.surface);
+      if (baseInputs.arrangement) populateSelect('arrangement-select', baseInputs.arrangement);
+      if (baseInputs.camera) populateSelect('camera-select', baseInputs.camera);
+      if (baseInputs.lighting) populateSelect('lighting-select', baseInputs.lighting);
       
-      state.config.background = baseInputs.background.default;
-      state.config.surface = baseInputs.surface.default;
-      state.config.arrangement = baseInputs.arrangement.default;
-      state.config.camera = baseInputs.camera.default;
-      state.config.lighting = baseInputs.lighting.default;
+      if (baseInputs.background) state.config.background = baseInputs.background.default;
+      if (baseInputs.surface) state.config.surface = baseInputs.surface.default;
+      if (baseInputs.arrangement) state.config.arrangement = baseInputs.arrangement.default;
+      if (baseInputs.camera) state.config.camera = baseInputs.camera.default;
+      if (baseInputs.lighting) state.config.lighting = baseInputs.lighting.default;
       
       renderContextualInputs(subject.contextual_inputs);
     }
@@ -1238,20 +1669,24 @@
         container.appendChild(card);
         
         const baseInputs = subject.base_inputs;
-        populateSelect(`background-${index}`, baseInputs.background);
-        populateSelect(`surface-${index}`, baseInputs.surface);
-        populateSelect(`arrangement-${index}`, baseInputs.arrangement);
-        populateSelect(`camera-${index}`, baseInputs.camera);
-        populateSelect(`lighting-${index}`, baseInputs.lighting);
+        if (!baseInputs) {
+          console.error('Missing base_inputs in subject:', subject);
+          return;
+        }
+        if (baseInputs.background) populateSelect(`background-${index}`, baseInputs.background);
+        if (baseInputs.surface) populateSelect(`surface-${index}`, baseInputs.surface);
+        if (baseInputs.arrangement) populateSelect(`arrangement-${index}`, baseInputs.arrangement);
+        if (baseInputs.camera) populateSelect(`camera-${index}`, baseInputs.camera);
+        if (baseInputs.lighting) populateSelect(`lighting-${index}`, baseInputs.lighting);
         
         // Store per-subject config
         state.subjectConfigs = state.subjectConfigs || {};
         state.subjectConfigs[subject.name] = {
-          background: baseInputs.background.default,
-          surface: baseInputs.surface.default,
-          arrangement: baseInputs.arrangement.default,
-          camera: baseInputs.camera.default,
-          lighting: baseInputs.lighting.default
+          background: baseInputs.background?.default,
+          surface: baseInputs.surface?.default,
+          arrangement: baseInputs.arrangement?.default,
+          camera: baseInputs.camera?.default,
+          lighting: baseInputs.lighting?.default
         };
         
         renderContextualInputs(subject.contextual_inputs, `contextual-${index}`);
@@ -1381,6 +1816,150 @@
       goToStep(3);
     }
     
+    function closeTask() {
+      // Close the plugin or reset to initial state
+      resetAll();
+    }
+    
+    function showStep61() {
+      document.getElementById('step6-menu').style.display = 'none';
+      document.getElementById('step61-menu').style.display = 'block';
+      document.getElementById('user-iteration-input').style.display = 'none';
+      document.getElementById('ai-suggestion-output').style.display = 'none';
+    }
+    
+    function showUserIteration() {
+      document.getElementById('step61-menu').style.display = 'none';
+      document.getElementById('user-iteration-input').style.display = 'block';
+    }
+    
+    function showAISuggestion() {
+      document.getElementById('step61-menu').style.display = 'none';
+      document.getElementById('ai-suggestion-output').style.display = 'block';
+      document.getElementById('ai-suggestion-text').textContent = 'Loading suggestion...';
+      
+      // Call backend with phase="ai_suggestion"
+      fetchAISuggestion();
+    }
+    
+    async function fetchAISuggestion(excludePrevious = false) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        const response = await fetch(BACKEND_URL, {
+          signal: controller.signal,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'ai_suggestion',
+            lockedConfig: state.config,
+            excludePrevious: excludePrevious
+          })
+        });
+        clearTimeout(timeoutId);
+        
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+        
+        if (!response.ok) {
+          const msg = data.error || data.message || raw || response.statusText;
+          document.getElementById('ai-suggestion-text').textContent = 'Error: ' + msg;
+          return;
+        }
+        
+        document.getElementById('ai-suggestion-text').textContent = data.reply || data.suggestion || 'No suggestion available';
+      } catch (error) {
+        console.error('Failed to fetch AI suggestion:', error);
+        document.getElementById('ai-suggestion-text').textContent = 'Error: Failed to get suggestion';
+      }
+    }
+    
+    async function submitUserIteration() {
+      const userRequest = document.getElementById('iteration-text').value;
+      if (!userRequest.trim()) {
+        alert('Please describe what you would like to change');
+        return;
+      }
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        const response = await fetch(BACKEND_URL, {
+          signal: controller.signal,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'iterate_user',
+            lockedConfig: state.config,
+            userRequest: userRequest
+          })
+        });
+        clearTimeout(timeoutId);
+        
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+        
+        if (!response.ok) {
+          const msg = data.error || data.message || raw || response.statusText;
+          alert('Backend error: ' + msg);
+          return;
+        }
+        
+        // Update result with new prompt
+        document.getElementById('result-text').textContent = data.reply || data.prompt;
+        
+        // Hide iteration UI, show step6 menu
+        document.getElementById('user-iteration-input').style.display = 'none';
+        document.getElementById('step6-menu').style.display = 'block';
+      } catch (error) {
+        console.error('Failed to iterate:', error);
+        alert('Error: Failed to apply changes');
+      }
+    }
+    
+    async function applyAISuggestion() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
+        const response = await fetch(BACKEND_URL, {
+          signal: controller.signal,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phase: 'iterate_ai',
+            lockedConfig: state.config,
+            suggestion: document.getElementById('ai-suggestion-text').textContent
+          })
+        });
+        clearTimeout(timeoutId);
+        
+        const raw = await response.text();
+        let data;
+        try { data = JSON.parse(raw); } catch { data = { error: raw }; }
+        
+        if (!response.ok) {
+          const msg = data.error || data.message || raw || response.statusText;
+          alert('Backend error: ' + msg);
+          return;
+        }
+        
+        // Update result with new prompt
+        document.getElementById('result-text').textContent = data.reply || data.prompt;
+        
+        // Hide AI suggestion UI, show step6 menu
+        document.getElementById('ai-suggestion-output').style.display = 'none';
+        document.getElementById('step6-menu').style.display = 'block';
+      } catch (error) {
+        console.error('Failed to apply AI suggestion:', error);
+        alert('Error: Failed to apply suggestion');
+      }
+    }
+    
     function renderConfigSummary() {
       const summary = document.getElementById('config-summary');
       summary.innerHTML = `
@@ -1406,7 +1985,7 @@
       
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         
         const lockedConfig = {
           ...state.config,
@@ -1429,10 +2008,10 @@
         };
         
         const response = await fetch(BACKEND_URL, {
+          signal: controller.signal,
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal
+          body: JSON.stringify(payload)
         });
         
         clearTimeout(timeoutId);
@@ -1448,8 +2027,13 @@
           return;
         }
         
-        document.getElementById('result-text').textContent = data.reply || data.prompt;
+        // Strip "🎨 FINAL PROMPT" header from output
+        let promptText = data.reply || data.prompt;
+        promptText = promptText.replace(/^🎨?\s*FINAL PROMPT\s*\n+/, '');
+        
+        document.getElementById('result-text').textContent = promptText;
         document.getElementById('result-section').style.display = 'block';
+        document.getElementById('step6-menu').style.display = 'block';
         
         // Hide footer when showing results
         updateFooter();

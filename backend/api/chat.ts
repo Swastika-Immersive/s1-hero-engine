@@ -18,6 +18,27 @@ function stripBase64Prefix(s: any) {
   return typeof s === 'string' ? s.replace(/^data:image\/\w+;base64,/, '') : s;
 }
 
+function cleanAIResponse(reply: string): any {
+  // If reply is not a string, return as-is
+  if (typeof reply !== 'string') {
+    return reply;
+  }
+
+  // Strip markdown code blocks
+  let cleaned = reply.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+  
+  // Try to parse as JSON
+  try {
+    const parsed = JSON.parse(cleaned);
+    console.log('Successfully parsed AI response as JSON');
+    return parsed;
+  } catch (e) {
+    console.log('Could not parse as JSON, returning as string');
+    // If not valid JSON, return the cleaned string
+    return cleaned;
+  }
+}
+
 export default async function handler(req: any, res: any) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,45 +64,27 @@ export default async function handler(req: any, res: any) {
       userMessage = [
         `Phase: step3_config`,
         ``,
-        `Return per-subject Step 3 input configurations as STRICT JSON (no markdown, no prose, no code fences).`,
+        `You are acting as a senior product-photography art director. For the subject(s) provided, produce SUBJECT-SPECIFIC, rich defaults and alternatives for each input (Background, Surface, Arrangement, Camera, Lighting, Style Preset, Branding, plus 1–2 category-relevant contextual inputs from the Smart Contextual Input System).`,
+        ``,
+        `Rules:`,
+        ``,
+        `Each default must be a full descriptive phrase (8–18 words), not a one-word dropdown value. Example for a ceramic mug: 'Soft warm off-white textured backdrop with subtle gradient falloff' — not 'Clean studio'.`,
+        `Each alternative must be equally specific and visually distinct from the default.`,
+        `Surface defaults should honor the seamless background-surface merge rule unless the subject demands a real surface (wood, marble, linen).`,
+        `Camera defaults come from Camera Intelligence by scale (style-engine.md): small tabletop → 15° elevated front-three-quarter, deep vessels → side profile, flat products → top-down, vertical subjects → side profile or 15°, large items → low hero angle.`,
+        `Lighting defaults come from Material-Aware Lighting rules: metal → specular with rim, ceramic → soft glaze sheen, glass → back-lit with crisp rim, fabric → diffused with weave emphasis, etc.`,
+        `For multi-subject modes (Consistent / Variation / One Composition), tailor each subject's defaults to that subject's material and scale. Do NOT give all subjects the same inputs.`,
+        `Hide Food input for electronics, mobility, tools, gadgets, decor, fashion.`,
         ``,
         `Mode: ${mode}${variationLevel ? ' (' + variationLevel + ')' : ''}`,
         `Subjects: ${subjects}`,
         `Product Ref: ${productRef}`,
         `Scene Ref: ${sceneRef}`,
         ``,
-        `For EACH subject, apply:`,
-        `- Category detection (cookware/electronics/lifestyle/tools/decor) per Smart Contextual Input System`,
-        `- Material-aware lighting (metal/ceramic/glass/plastic etc) per Material-Aware Lighting rules`,
-        `- Camera intelligence by scale and silhouette per Camera Intelligence rules`,
-        `- If sceneRef=yes with images attached, derive background/lighting/surface/camera from the image and mark derived=true`,
+        `If sceneRef=yes with images attached, derive background/lighting/surface/camera from the image.`,
         ``,
-        `Return schema:`,
-        `{`,
-        `  "shared": {`,
-        `    "styleSuggestion": "ikea|luxury|genz|apple",`,
-        `    "moodNote": "one-line editorial direction for the set"`,
-        `  },`,
-        `  "subjects": [`,
-        `    {`,
-        `      "name": "<subject>",`,
-        `      "category": "...",`,
-        `      "material": "...",`,
-        `      "base_inputs": {`,
-        `        "background":  { "default": "...", "alternatives": ["", "", ""], "derived": bool },`,
-        `        "surface":     { "default": "...", "alternatives": [...], "derived": bool },`,
-        `        "arrangement": { "default": "...", "alternatives": [...], "derived": false },`,
-        `        "camera":      { "default": "...", "alternatives": [...], "derived": bool },`,
-        `        "lighting":    { "default": "...", "alternatives": [...], "derived": bool }`,
-        `      },`,
-        `      "contextual_inputs": [ { "key":"", "label":"", "default":"", "alternatives":[] } ]`,
-        `    }`,
-        `  ]`,
-        `}`,
-        ``,
-        `For Consistent mode: the "shared" block drives the BASE STYLE DNA; per-subject inputs still differ in camera/angle where material demands it.`,
-        `For Variation mode: return variationLevel-appropriate alternatives per Variation Architecture.`,
-        `For Composition mode: shared scene + per-subject positioning notes.`,
+        `Return JSON in this exact shape:`,
+        `{ inputs: [{ label, default, alternatives: [a, b, c] }, ...] }`,
       ].join('\n');
       imageBlocks = (sceneImages || []).map((img: string) => ({
         type: 'image',
@@ -222,8 +225,16 @@ export default async function handler(req: any, res: any) {
       messages: [{ role: 'user', content }],
     });
 
-    const reply = completion.content[0].type === 'text' ? completion.content[0].text : '';
-    return res.status(200).json({ reply });
+    const rawReply = completion.content[0].type === 'text' ? completion.content[0].text : '';
+    
+    // Clean and normalize the AI response
+    const cleanedReply = cleanAIResponse(rawReply);
+    
+    console.log('=== BACKEND RESPONSE CLEANING ===');
+    console.log('Raw reply length:', rawReply.length);
+    console.log('Cleaned reply type:', typeof cleanedReply);
+    
+    return res.status(200).json({ reply: cleanedReply });
   } catch (err: any) {
     console.error('BACKEND CRASH:', err);
     return res.status(500).json({
