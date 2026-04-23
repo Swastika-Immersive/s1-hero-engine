@@ -821,6 +821,46 @@
       branding: "off"
     };
     
+    // Helper function to enforce exactly 2 alternatives per input
+    function enforceTwoAlternatives(input) {
+      if (!input.alternatives || !Array.isArray(input.alternatives)) {
+        input.alternatives = [];
+      }
+      
+      // If more than 2 alternatives, keep first and most distinct
+      if (input.alternatives.length > 2) {
+        console.log(`Trimming alternatives from ${input.alternatives.length} to 2 for ${input.label}`);
+        input.alternatives = [input.alternatives[0], input.alternatives[input.alternatives.length - 1]];
+      }
+      
+      // If fewer than 2 alternatives, auto-generate
+      if (input.alternatives.length < 2) {
+        console.log(`Auto-generating alternatives for ${input.label} (currently ${input.alternatives.length})`);
+        const existing = input.alternatives[0] || input.default;
+        
+        // Generate a variation by changing key words
+        const variations = {
+          'Background': ['Deep charcoal backdrop', 'Warm white backdrop'],
+          'Surface': ['Marble surface', 'Wood surface'],
+          'Arrangement': ['Offset composition', 'Elevated placement'],
+          'Camera': ['Side profile angle', 'Low hero angle'],
+          'Lighting': ['Dramatic side lighting', 'Bright studio lighting'],
+          'Style Preset': ['Luxury Premium', 'IKEA Minimal'],
+          'Branding': ['Preserve branding', 'Minimal branding']
+        };
+        
+        const defaults = variations[input.label] || ['Alternative 1', 'Alternative 2'];
+        
+        if (input.alternatives.length === 0) {
+          input.alternatives = defaults;
+        } else {
+          input.alternatives.push(defaults[0]);
+        }
+      }
+      
+      return input;
+    }
+    
     // Helper function to normalize any backend response to consistent format
     function normalizeConfigResponse(apiResponse) {
       console.log("=== NORMALIZING CONFIG RESPONSE ===");
@@ -838,9 +878,10 @@
         }
       }
       
-      // If already in standard format, return as-is
+      // If already in standard format, enforce 2 alternatives per input
       if (apiResponse.inputs && Array.isArray(apiResponse.inputs)) {
-        console.log("Already in standard inputs format");
+        console.log("Already in standard inputs format, enforcing 2 alternatives");
+        apiResponse.inputs = apiResponse.inputs.map(enforceTwoAlternatives);
         return apiResponse;
       }
       
@@ -851,44 +892,58 @@
         const baseInputs = apiResponse.base_inputs;
         
         // Convert each base_input to standard input format
-        const fieldMapping = {
-          background: 'Background',
-          surface: 'Surface',
-          arrangement: 'Arrangement',
-          camera: 'Camera',
-          lighting: 'Lighting'
-        };
+        if (baseInputs.background) {
+          inputs.push({
+            label: 'Background',
+            default: baseInputs.background.default || baseInputs.background,
+            alternatives: baseInputs.background.alternatives || [baseInputs.background]
+          });
+        }
+        if (baseInputs.surface) {
+          inputs.push({
+            label: 'Surface',
+            default: baseInputs.surface.default || baseInputs.surface,
+            alternatives: baseInputs.surface.alternatives || [baseInputs.surface]
+          });
+        }
+        if (baseInputs.arrangement) {
+          inputs.push({
+            label: 'Arrangement',
+            default: baseInputs.arrangement.default || baseInputs.arrangement,
+            alternatives: baseInputs.arrangement.alternatives || [baseInputs.arrangement]
+          });
+        }
+        if (baseInputs.camera) {
+          inputs.push({
+            label: 'Camera',
+            default: baseInputs.camera.default || baseInputs.camera,
+            alternatives: baseInputs.camera.alternatives || [baseInputs.camera]
+          });
+        }
+        if (baseInputs.lighting) {
+          inputs.push({
+            label: 'Lighting',
+            default: baseInputs.lighting.default || baseInputs.lighting,
+            alternatives: baseInputs.lighting.alternatives || [baseInputs.lighting]
+          });
+        }
+        if (baseInputs.stylePreset) {
+          inputs.push({
+            label: 'Style Preset',
+            default: baseInputs.stylePreset.default || baseInputs.stylePreset,
+            alternatives: baseInputs.stylePreset.alternatives || [baseInputs.stylePreset]
+          });
+        }
+        if (baseInputs.branding) {
+          inputs.push({
+            label: 'Branding',
+            default: baseInputs.branding.default || baseInputs.branding,
+            alternatives: baseInputs.branding.alternatives || [baseInputs.branding]
+          });
+        }
         
-        Object.keys(fieldMapping).forEach(key => {
-          const field = baseInputs[key];
-          if (field) {
-            inputs.push({
-              label: fieldMapping[key],
-              default: field.default || defaultConfig[key],
-              alternatives: field.alternatives || [defaultConfig[key]]
-            });
-          } else {
-            // Add default if missing
-            inputs.push({
-              label: fieldMapping[key],
-              default: defaultConfig[key],
-              alternatives: [defaultConfig[key]]
-            });
-          }
-        });
-        
-        // Add style preset and branding if not present
-        inputs.push({
-          label: 'Style Preset',
-          default: baseInputs.stylePreset || defaultConfig.stylePreset,
-          alternatives: [defaultConfig.stylePreset]
-        });
-        inputs.push({
-          label: 'Branding',
-          default: baseInputs.branding || defaultConfig.branding,
-          alternatives: [defaultConfig.branding]
-        });
-        
+        // Enforce exactly 2 alternatives per input
+        inputs.forEach(enforceTwoAlternatives);
         return { inputs };
       }
       
@@ -936,6 +991,9 @@
           alternatives: [defaultConfig.branding]
         });
         
+        // Enforce exactly 2 alternatives per input
+        inputs.forEach(enforceTwoAlternatives);
+        
         // Add contextual inputs if present
         if (subject.contextual_inputs) {
           Object.keys(subject.contextual_inputs).forEach(key => {
@@ -953,17 +1011,17 @@
       
       // If unknown format, create default structure
       console.warn("Unknown format, creating default structure");
-      return {
-        inputs: [
-          { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
-          { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
-          { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
-          { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
-          { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
-          { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
-          { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
-        ]
-      };
+      const defaultInputs = [
+        { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },
+        { label: 'Surface', default: defaultConfig.surface, alternatives: [defaultConfig.surface] },
+        { label: 'Arrangement', default: defaultConfig.arrangement, alternatives: [defaultConfig.arrangement] },
+        { label: 'Camera', default: defaultConfig.camera, alternatives: [defaultConfig.camera] },
+        { label: 'Lighting', default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] },
+        { label: 'Style Preset', default: defaultConfig.stylePreset, alternatives: [defaultConfig.stylePreset] },
+        { label: 'Branding', default: defaultConfig.branding, alternatives: [defaultConfig.branding] }
+      ];
+      defaultInputs.forEach(enforceTwoAlternatives);
+      return { inputs: defaultInputs };
     }
     
     // Helper function to ensure config has complete structure
@@ -996,6 +1054,18 @@
           if (!baseInputs.camera) baseInputs.camera = { default: defaultConfig.camera, alternatives: [defaultConfig.camera] };
           if (!baseInputs.lighting) baseInputs.lighting = { default: defaultConfig.lighting, alternatives: [defaultConfig.lighting] };
         });
+      }
+      
+      // If config is still not recognized, check if it's a string with markdown and parse it
+      if (typeof safeConfig === 'string' && safeConfig.includes('```')) {
+        console.warn('ensureConfigStructure: Config is string with markdown, parsing');
+        let cleanString = safeConfig.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
+        try {
+          const parsed = JSON.parse(cleanString);
+          return ensureConfigStructure(parsed);
+        } catch (e) {
+          console.error('ensureConfigStructure: Failed to parse markdown string:', e);
+        }
       }
       
       return safeConfig;
@@ -1440,18 +1510,18 @@
       console.log("Config type:", typeof config);
       console.log("Config value:", config);
       
-      // IMMEDIATE MARKDOWN STRIPPING - do this first before anything else
-      if (typeof config === 'string') {
-        console.warn('Config is string, stripping markdown IMMEDIATELY');
-        config = config.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
-        console.log("After strip:", config.substring(0, 100) + "...");
+      // AGGRESSIVE MARKDOWN CHECK - check if config contains markdown regardless of type
+      if (config && (typeof config === 'string' || (typeof config === 'object' && JSON.stringify(config).includes('```')))) {
+        console.warn('Config contains markdown, stripping AGGRESSIVELY');
+        let configString = typeof config === 'string' ? config : JSON.stringify(config);
+        configString = configString.replace(/```json\s*\n?/gi, '').replace(/```\s*\n?/gi, '').trim();
         try {
-          config = JSON.parse(config);
+          config = JSON.parse(configString);
           state.step3Config = config;
-          console.log("Successfully parsed config");
+          console.log("Successfully stripped and parsed markdown config");
         } catch (e) {
-          console.error('Failed to parse config string:', e);
-          // If parsing fails, use defaults
+          console.error('Failed to parse after markdown strip:', e);
+          // Use defaults if parsing fails
           config = {
             inputs: [
               { label: 'Background', default: defaultConfig.background, alternatives: [defaultConfig.background] },

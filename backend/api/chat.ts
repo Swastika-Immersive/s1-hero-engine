@@ -31,6 +31,35 @@ function cleanAIResponse(reply: string): any {
   try {
     const parsed = JSON.parse(cleaned);
     console.log('Successfully parsed AI response as JSON');
+    
+    // Enforce exactly 2 alternatives per input
+    if (parsed.inputs && Array.isArray(parsed.inputs)) {
+      parsed.inputs = parsed.inputs.map((input: any) => {
+        if (!input.alternatives || !Array.isArray(input.alternatives)) {
+          input.alternatives = [];
+        }
+        
+        // Trim to 2 if more
+        if (input.alternatives.length > 2) {
+          console.log(`Trimming alternatives from ${input.alternatives.length} to 2 for ${input.label}`);
+          input.alternatives = [input.alternatives[0], input.alternatives[input.alternatives.length - 1]];
+        }
+        
+        // Auto-generate if fewer than 2
+        if (input.alternatives.length < 2) {
+          console.log(`Auto-generating alternatives for ${input.label} (currently ${input.alternatives.length})`);
+          const defaults = ['Alternative 1', 'Alternative 2'];
+          if (input.alternatives.length === 0) {
+            input.alternatives = defaults;
+          } else {
+            input.alternatives.push(defaults[0]);
+          }
+        }
+        
+        return input;
+      });
+    }
+    
     return parsed;
   } catch (e) {
     console.log('Could not parse as JSON, returning as string');

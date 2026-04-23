@@ -88,9 +88,10 @@ Default: <value>
 Alternatives:
 1) <option>
 2) <option>
-3) <option>
 ----------------------------------
 ```
+
+**CRITICAL RULE: Each input must have EXACTLY 2 alternatives, no more, no less.**
 
 The base input set is Background, Surface, Arrangement, Camera, Lighting, Style Preset, Branding & Logos. On top of this, the **Smart Contextual Input System** adds category-specific inputs (Food Context, Action/Usage, Usage Scene, etc.) — see `references/contextual-inputs.md`.
 
@@ -483,8 +484,7 @@ __Food Context__
 Default: Auto-select best dish (ADI active — see auto-dish-intelligence.md)
 Alternatives:
 1) Manual selection (user defines dish)
-2) Ingredients styling (raw elements only)
-3) Empty (no food)
+2) Empty (no food)
 ----------------------------------
 __Action / Usage__
 Default: Static product (no action)
@@ -572,8 +572,7 @@ __Food Context__
 Default: Auto-select best dish (based on product)
 Alternatives:
 1) Manual selection (user defines dish)
-2) Ingredients styling (raw elements only)
-3) Empty (no food)
+2) Empty (no food)
 ----------------------------------
 ```
 
