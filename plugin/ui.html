@@ -540,18 +540,24 @@
       
       switch (state.currentStep) {
         case 1:
+          // TYPE A: Required Input - requires mode selection
           continueBtn.disabled = !state.mode || (state.mode === 'variation' && !state.variationLevel);
           break;
         case 2:
+          // TYPE A: Required Input - requires subject input
           continueBtn.disabled = state.subjects.trim().length === 0;
           break;
         case 3:
-          continueBtn.disabled = !state.step3Config;
+          // TYPE B: Optional/Pre-filled - enabled by default, only disable if config fails to load
+          // Config has defaults, so Continue is always enabled unless loading fails
+          continueBtn.disabled = false;
           break;
         case 4:
-          continueBtn.disabled = !state.preset;
+          // TYPE B: Optional/Pre-filled - has default preset, always enabled
+          continueBtn.disabled = false;
           break;
         case 5:
+          // TYPE B: Optional/Pre-filled - always enabled
           continueBtn.disabled = false;
           break;
       }
