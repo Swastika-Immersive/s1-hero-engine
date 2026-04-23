@@ -204,6 +204,11 @@
       display: flex;
       gap: 8px;
       margin-top: 16px;
+      position: sticky;
+      bottom: 0;
+      background: #0d0d12;
+      padding: 16px 0;
+      z-index: 100;
     }
     
     .loader {
@@ -359,6 +364,7 @@
         </div>
         
         <div class="nav-buttons">
+          <button class="button button-secondary" onclick="goToStep1()">← Back</button>
           <button class="button" id="step2-continue" disabled onclick="goToStep3()">Continue →</button>
         </div>
       </div>
@@ -408,6 +414,7 @@
           </div>
           
           <div class="nav-buttons">
+            <button class="button button-secondary" onclick="goToStep2()">← Back</button>
             <button class="button" onclick="goToStep4()">Continue →</button>
           </div>
         </div>
@@ -451,6 +458,7 @@
         </div>
         
         <div class="nav-buttons">
+          <button class="button button-secondary" onclick="goToStep3()">← Back</button>
           <button class="button" onclick="goToStep5()">Continue →</button>
         </div>
       </div>
@@ -464,6 +472,7 @@
         </div>
         
         <div class="nav-buttons">
+          <button class="button button-secondary" onclick="goToStep4()">← Back</button>
           <button class="button" onclick="generatePrompt()">Generate Prompt</button>
         </div>
         
