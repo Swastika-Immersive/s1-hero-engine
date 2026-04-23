@@ -513,19 +513,19 @@
           <h3>Choose Generation Mode</h3>
           <p>Select how you want to generate your prompts</p>
           <div class="option-grid">
-            <div class="option" data-mode="single" onclick="selectMode('single')">
+            <div class="option" data-mode="single">
               <h4>Single Image</h4>
               <p>Generate one perfect prompt</p>
             </div>
-            <div class="option" data-mode="consistent" onclick="selectMode('consistent')">
+            <div class="option" data-mode="consistent">
               <h4>Consistent Series</h4>
               <p>Multiple images, same style</p>
             </div>
-            <div class="option" data-mode="variation" onclick="selectMode('variation')">
+            <div class="option" data-mode="variation">
               <h4>Variation Set</h4>
               <p>Explore different angles</p>
             </div>
-            <div class="option" data-mode="composition" onclick="selectMode('composition')">
+            <div class="option" data-mode="composition">
               <h4>Composition</h4>
               <p>Arrange multiple subjects</p>
             </div>
@@ -536,17 +536,17 @@
           <h3>Variation Level</h3>
           <p>How much should the images vary?</p>
           <div class="option-grid">
-            <div class="option" data-level="low" onclick="selectVariation('low')">
+            <div class="option" data-level="low">
               <h4>Low</h4>
-              <p>Subtle differences</p>
+              <p>Subtle changes</p>
             </div>
-            <div class="option" data-level="medium" onclick="selectVariation('medium')">
+            <div class="option" data-level="medium">
               <h4>Medium</h4>
               <p>Balanced variation</p>
             </div>
-            <div class="option" data-level="high" onclick="selectVariation('high')">
+            <div class="option" data-level="high">
               <h4>High</h4>
-              <p>Dramatic changes</p>
+              <p>Dramatic differences</p>
             </div>
           </div>
         </div>
@@ -563,23 +563,26 @@
         <div class="card">
           <h3>Reference Images</h3>
           <p>Select which references you'll provide</p>
-          <div class="toggle" onclick="toggleProductRef()">
-            <span class="toggle-label">Product Reference</span>
+          <div class="toggle" id="product-ref-toggle-btn">
+            <span>Product Reference</span>
             <div class="toggle-switch" id="product-ref-toggle"></div>
           </div>
-          <div id="product-upload-zone" class="upload-zone" style="display: none;">
-            <p>Drag & drop images, paste, or use Figma selection</p>
-            <button onclick="getFigmaSelection('product')">Use Selected Figma Frame</button>
-            <div id="product-thumbnails" class="image-thumbnails"></div>
+          <div id="product-upload-zone" style="display: none;">
+            <div class="upload-zone" id="product-upload-zone-inner">
+              <p>Drag & drop or click to upload</p>
+              <button id="product-figma-btn">Use Selected Figma Frame</button>
+            </div>
           </div>
-          <div class="toggle" onclick="toggleSceneRef()">
-            <span class="toggle-label">Scene Reference</span>
+          
+          <div class="toggle" id="scene-ref-toggle-btn">
+            <span>Scene Reference</span>
             <div class="toggle-switch" id="scene-ref-toggle"></div>
           </div>
-          <div id="scene-upload-zone" class="upload-zone" style="display: none;">
-            <p>Drag & drop an image, paste, or use Figma selection</p>
-            <button onclick="getFigmaSelection('scene')">Use Selected Figma Frame</button>
-            <div id="scene-thumbnails" class="image-thumbnails"></div>
+          <div id="scene-upload-zone" style="display: none;">
+            <div class="upload-zone" id="scene-upload-zone-inner">
+              <p>Drag & drop or click to upload</p>
+              <button id="scene-figma-btn">Use Selected Figma Frame</button>
+            </div>
           </div>
         </div>
       </div>
@@ -646,37 +649,38 @@
           <h3>Style Preset</h3>
           <p>Choose a brand style or custom settings</p>
           <div class="option-grid">
-            <div class="option" data-preset="ikea-minimal" onclick="selectPreset('ikea-minimal')">
+            <div class="option" data-preset="ikea-minimal">
               <h4>IKEA Minimal</h4>
-              <p>Natural, functional</p>
+              <p>Honest, warm, lived-in</p>
             </div>
-            <div class="option" data-preset="luxury-premium" onclick="selectPreset('luxury-premium')">
+            <div class="option" data-preset="luxury-premium">
               <h4>Luxury Premium</h4>
-              <p>Elegant, premium</p>
+              <p>Rich, cinematic, refined</p>
             </div>
-            <div class="option" data-preset="gen-z-bold" onclick="selectPreset('gen-z-bold')">
+            <div class="option" data-preset="gen-z-bold">
               <h4>Gen-Z Bold</h4>
-              <p>Bold, vibrant</p>
+              <p>High contrast, expressive</p>
             </div>
-            <div class="option" data-preset="apple-style" onclick="selectPreset('apple-style')">
+            <div class="option" data-preset="apple-style">
               <h4>Apple Style</h4>
-              <p>Clean, minimalist</p>
+              <p>Clean, minimal, premium</p>
             </div>
           </div>
         </div>
         
         <div class="card">
-          <h3>Additional Options</h3>
-          <div class="toggle" onclick="toggleNoBranding()">
-            <span class="toggle-label">No Branding</span>
+          <h3>Style Modifiers</h3>
+          <p>Additional style adjustments</p>
+          <div class="toggle" id="no-branding-toggle-btn">
+            <span>No Branding</span>
             <div class="toggle-switch" id="no-branding-toggle"></div>
           </div>
-          <div class="toggle" onclick="toggleMotionAccents()">
-            <span class="toggle-label">Motion Accents</span>
+          <div class="toggle" id="motion-accents-toggle-btn">
+            <span>Motion Accents</span>
             <div class="toggle-switch" id="motion-accents-toggle"></div>
           </div>
-          <div class="toggle" onclick="toggleConsistencyMode()">
-            <span class="toggle-label">Consistency Mode</span>
+          <div class="toggle" id="consistency-toggle-btn">
+            <span>Consistency Mode</span>
             <div class="toggle-switch" id="consistency-toggle"></div>
           </div>
         </div>
@@ -690,17 +694,17 @@
           <div id="config-summary"></div>
         </div>
         
-        <div class="option-grid" style="margin-top: 16px;">
-          <div class="option" onclick="generatePrompt()">
-            <h4>Generate</h4>
-            <p>Create your prompt</p>
+        <div class="option-grid">
+          <div class="option" id="generate-prompt-btn">
+            <h4>Generate Prompt</h4>
+            <p>Create your final prompt</p>
           </div>
-          <div class="option" onclick="modifyConfig()">
-            <h4>Modify</h4>
+          <div class="option" id="modify-config-btn">
+            <h4>Modify Config</h4>
             <p>Adjust settings</p>
           </div>
-          <div class="option" onclick="resetAll()">
-            <h4>Cancel</h4>
+          <div class="option" id="reset-all-btn">
+            <h4>Reset All</h4>
             <p>Start over</p>
           </div>
         </div>
@@ -715,15 +719,15 @@
           <div id="step6-menu" class="card" style="margin-top: 16px;">
             <h3>What would you like to do next?</h3>
             <div class="option-grid">
-              <div class="option" onclick="closeTask()">
+              <div class="option" id="close-task-btn">
                 <h4>Close Task</h4>
                 <p>Finish and exit</p>
               </div>
-              <div class="option" onclick="showStep61()">
+              <div class="option" id="show-step61-btn">
                 <h4>Generate Another Version</h4>
                 <p>Iterate on this prompt</p>
               </div>
-              <div class="option" onclick="modifyConfig()">
+              <div class="option" id="modify-config-btn-2">
                 <h4>Modify Inputs</h4>
                 <p>Adjust settings</p>
               </div>
@@ -732,11 +736,11 @@
           <div id="step61-menu" class="card" style="margin-top: 16px; display: none;">
             <h3>How would you like to proceed?</h3>
             <div class="option-grid">
-              <div class="option" onclick="showUserIteration()">
+              <div class="option" id="show-user-iteration-btn">
                 <h4>Describe Changes You Want</h4>
                 <p>Freeform input</p>
               </div>
-              <div class="option" onclick="showAISuggestion()">
+              <div class="option" id="show-ai-suggestion-btn">
                 <h4>Let Me Suggest Better Direction</h4>
                 <p>AI-powered iteration</p>
               </div>
@@ -747,23 +751,23 @@
             <p>You can suggest anything: subject, background, lighting, depth, color palette, composition, props, scene, action</p>
             <textarea id="iteration-text" style="width: 100%; min-height: 100px; background: #252532; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; outline: none; resize: vertical;" placeholder="Example: make it darker and more premium, or add a subtle accent object"></textarea>
             <div class="nav-buttons" style="position: relative; margin-top: 16px; border-top: 1px solid #2a2a35;">
-              <button class="button button-secondary" onclick="showStep61()">Cancel</button>
-              <button class="button" onclick="submitUserIteration()">Apply Changes</button>
+              <button class="button button-secondary" id="cancel-iteration-btn">Cancel</button>
+              <button class="button" id="submit-iteration-btn">Apply Changes</button>
             </div>
           </div>
           <div id="ai-suggestion-output" class="card" style="margin-top: 16px; display: none;">
             <h3>AI Suggestion</h3>
             <p id="ai-suggestion-text"></p>
             <div class="option-grid" style="margin-top: 16px;">
-              <div class="option" onclick="applyAISuggestion()">
+              <div class="option" id="apply-suggestion-btn">
                 <h4>Yes, Try This</h4>
                 <p>Regenerate with suggestion</p>
               </div>
-              <div class="option" onclick="showAISuggestion()">
+              <div class="option" id="get-another-suggestion-btn">
                 <h4>Suggest Another Option</h4>
                 <p>Different direction</p>
               </div>
-              <div class="option" onclick="showStep61()">
+              <div class="option" id="back-to-menu-btn">
                 <h4>Go Back</h4>
                 <p>Return to menu</p>
               </div>
@@ -775,8 +779,8 @@
     
     <!-- Global Fixed Footer -->
     <div class="nav-buttons">
-      <button class="button button-secondary" id="global-back" onclick="goBack()">← Back</button>
-      <button class="button" id="global-continue" onclick="goNext()">Continue →</button>
+      <button class="button button-secondary" id="global-back">← Back</button>
+      <button class="button" id="global-continue">Continue →</button>
     </div>
   </div>
   
@@ -810,6 +814,71 @@
     };
     
     const BACKEND_URL = 'https://backend-mocha-six-61.vercel.app/api/chat';
+    
+    // Attach event listeners for mode options
+    document.querySelectorAll('.option[data-mode]').forEach(el => {
+      el.addEventListener('click', () => {
+        const mode = el.dataset.mode;
+        window.selectMode(mode);
+      });
+    });
+    
+    // Attach event listeners for variation options
+    document.querySelectorAll('.option[data-level]').forEach(el => {
+      el.addEventListener('click', () => {
+        const level = el.dataset.level;
+        window.selectVariation(level);
+      });
+    });
+    
+    // Attach event listeners for Step 2 toggles
+    document.getElementById('product-ref-toggle-btn')?.addEventListener('click', window.toggleProductRef);
+    document.getElementById('scene-ref-toggle-btn')?.addEventListener('click', window.toggleSceneRef);
+    document.getElementById('product-figma-btn')?.addEventListener('click', () => window.getFigmaSelection('product'));
+    document.getElementById('scene-figma-btn')?.addEventListener('click', () => window.getFigmaSelection('scene'));
+    
+    // Attach event listeners for Step 4 presets
+    document.querySelectorAll('.option[data-preset]').forEach(el => {
+      el.addEventListener('click', () => {
+        const preset = el.dataset.preset;
+        window.selectPreset(preset);
+      });
+    });
+    
+    // Attach event listeners for Step 4 toggles
+    document.getElementById('no-branding-toggle-btn')?.addEventListener('click', window.toggleNoBranding);
+    document.getElementById('motion-accents-toggle-btn')?.addEventListener('click', window.toggleMotionAccents);
+    document.getElementById('consistency-toggle-btn')?.addEventListener('click', window.toggleConsistencyMode);
+    
+    // Attach event listeners for navigation buttons
+    document.getElementById('global-back')?.addEventListener('click', window.goBack);
+    document.getElementById('global-continue')?.addEventListener('click', window.goNext);
+    
+    // Attach event listeners for Step 5 buttons
+    document.getElementById('generate-prompt-btn')?.addEventListener('click', window.generatePrompt);
+    document.getElementById('modify-config-btn')?.addEventListener('click', window.modifyConfig);
+    document.getElementById('reset-all-btn')?.addEventListener('click', window.resetAll);
+    
+    // Attach event listeners for Step 6 menu buttons
+    document.getElementById('close-task-btn')?.addEventListener('click', window.closeTask);
+    document.getElementById('show-step61-btn')?.addEventListener('click', window.showStep61);
+    document.getElementById('modify-config-btn-2')?.addEventListener('click', window.modifyConfig);
+    document.getElementById('show-user-iteration-btn')?.addEventListener('click', window.showUserIteration);
+    document.getElementById('show-ai-suggestion-btn')?.addEventListener('click', window.showAISuggestion);
+    document.getElementById('cancel-iteration-btn')?.addEventListener('click', window.showStep61);
+    document.getElementById('submit-iteration-btn')?.addEventListener('click', window.submitUserIteration);
+    document.getElementById('apply-suggestion-btn')?.addEventListener('click', window.applyAISuggestion);
+    document.getElementById('get-another-suggestion-btn')?.addEventListener('click', window.showAISuggestion);
+    document.getElementById('back-to-menu-btn')?.addEventListener('click', window.showStep61);
+    
+    // Event delegation for dynamically created thumbnail remove buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('thumbnail-remove')) {
+        const type = e.target.dataset.type;
+        const index = parseInt(e.target.dataset.index);
+        window.removeImage(type, index);
+      }
+    });
     
     const defaultConfig = {
       background: "clean studio",
@@ -1294,7 +1363,7 @@
         thumbnail.className = 'thumbnail';
         thumbnail.innerHTML = `
           <img src="data:image/png;base64,${img}" alt="Uploaded image">
-          <div class="thumbnail-remove" onclick="removeImage('${type}', ${index})">×</div>
+          <div class="thumbnail-remove" data-type="${type}" data-index="${index}">×</div>
         `;
         container.appendChild(thumbnail);
       });
